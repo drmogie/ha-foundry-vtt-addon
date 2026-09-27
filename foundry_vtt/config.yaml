@@ -1,5 +1,5 @@
 name: Foundry VTT
-version: "2026.09.26.05"
+version: "2026.09.26.06"
 slug: foundry_vtt
 description: Run your own Foundry Virtual Tabletop server inside Home Assistant
 url: https://github.com/drmogie/ha-foundry-vtt-addon

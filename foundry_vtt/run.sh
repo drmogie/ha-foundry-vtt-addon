@@ -101,6 +101,28 @@ else
   echo "[ha-foundry-vtt] WARNING: ${CONFIG_ROOT} is not mounted. Using /data only." >&2
 fi
 
+# Home Assistant recreates this container on every start/stop, which throws
+# away the installed Foundry application (it only keeps /data). That means
+# the base image has to unzip the ~3.5-minute Foundry install from scratch
+# on every restart, even though it already skips the download.
+# Fix: keep the installed app itself in /data too, so it survives restarts.
+APP_CACHE="${DATA_ROOT}/resources"
+if [ -e /home/node/resources ] && [ ! -L /home/node/resources ]; then
+  echo "[ha-foundry-vtt] Saving the installed Foundry app to ${APP_CACHE} for next restart."
+  rm -rf "${APP_CACHE}"
+  mkdir -p "${APP_CACHE}"
+  cp -a /home/node/resources/. "${APP_CACHE}/" 2>/dev/null || true
+  rm -rf /home/node/resources
+fi
+mkdir -p "${APP_CACHE}"
+ln -sfn "${APP_CACHE}" /home/node/resources
+if [ "$(stat -c %U "${APP_CACHE}")" != "node" ]; then
+  chown -R node:node "${APP_CACHE}" 2>/dev/null || true
+fi
+if [ -f "${APP_CACHE}/app/package.json" ]; then
+  echo "[ha-foundry-vtt] Found the installed Foundry app already saved, skipping the unzip."
+fi
+
 # If we already have a cached copy of this Foundry version, skip login
 # entirely so we don't redownload it on every restart. The base image tries,
 # in order: foundry_release_url, then username/password, then the cache -

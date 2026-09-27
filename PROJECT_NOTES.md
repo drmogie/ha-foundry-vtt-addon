@@ -70,3 +70,44 @@ Open risks to check on first real run:
 - Tested the unset logic standalone; not tested against the real image
   (no Docker here). Watch the Log tab for "Found cached Foundry" on the
   second start.
+
+## 2026-09-27: fix the real slow-restart cause (version 2026.09.26.06)
+
+- User asked to improve boot/reboot time. Grabbed the real Foundry VTT log
+  from HA (via Chrome + downloading it, then reading the file directly -
+  the in-app log viewer's virtualized scroll fought browser automation).
+- Found the actual cost: cache-skip (from .05) was working fine ("Found
+  cached Foundry 14.368 ... skipping download"), but "Extracting Node.js
+  release file" to "Installation completed" took 3.5 minutes on its own.
+  That is Foundry's own unzip of its already-downloaded, already-cached
+  archive into /home/node/resources/app - NOT covered by our earlier fix.
+- Root cause: HA Supervisor recreates the add-on's container on every
+  start/stop (confirmed by "No Foundry Virtual Tabletop installation
+  detected" appearing on every restart), so only bind-mounted /data
+  survives; the container's own writable layer (including the unzipped
+  app under /home/node/resources) does not.
+- Fix: run.sh now also symlinks /home/node/resources to
+  /data/resources, the same trick as the Data/Config/Logs folders, so the
+  unzipped app itself survives a restart. entrypoint.sh checks
+  resources/app/package.json before deciding to reinstall, so once this
+  cache is warm it should skip the unzip entirely.
+- Verified `rm -r resources` (entrypoint.sh's own version-mismatch cleanup)
+  only removes the symlink, not the /data target, with a real shell test.
+  Simulated all 4 cycles (fresh install, plain restart, version bump,
+  restart after bump) in a sandbox before shipping - all behaved correctly,
+  including wiping the old cached app before saving a new version so
+  stale files from a previous version don't linger.
+- Considered and rejected: baking Foundry into a custom multi-stage Docker
+  image at build time (felddy's own "pre-installed distribution" pattern).
+  Would avoid the extraction step entirely, but needs credentials or a
+  timed URL at *build* time, a manual rebuild for every Foundry version,
+  and a much bigger image - not worth it when this symlink fix targets the
+  same measured bottleneck for much less complexity and no rebuild step.
+- foundry_ip_discovery was also seen set to true on the live add-on
+  (default is false in config.yaml, but an existing install keeps its
+  saved option value across upgrades) - worth turning off for a small
+  additional saving, but it wasn't the multi-minute cost; that was the
+  extraction step above.
+- Not verified beyond the sandbox simulation - no Docker here. Ask Mogie
+  to update, restart twice, and check the Log tab for "Found the installed
+  Foundry app already saved, skipping the unzip." on the second restart.

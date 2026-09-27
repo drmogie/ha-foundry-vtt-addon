@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.26.06
+
+- Fixes the biggest cause of slow restarts: Home Assistant recreates this add-on's container on every start, so the installed Foundry app itself (not just the download) had to be unpacked again each time, taking several minutes. It is now saved in /data too, so a restart on the same version should be much faster.
+
 ## 2026.09.26.05
 
 - Skips the download and login on restart when a cached copy of your Foundry version already exists. Fixes a full download and install happening every restart.

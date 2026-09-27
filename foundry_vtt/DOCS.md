@@ -101,6 +101,13 @@ If it downloads every time, check:
 - The Log tab, right after "Starting Foundry VTT", for a
   "Found cached Foundry" message. If you see it, the cache worked.
 
+If restarts are still slow even with that message showing, check the Log
+tab for "Found the installed Foundry app already saved, skipping the unzip."
+right after it. That is the bigger time saver: Home Assistant recreates this
+add-on's container on every start, so without this, Foundry has to be
+unzipped again every time, which can take several minutes. If you do not see
+that message on a restart, send the Log tab's contents.
+
 ## Troubleshooting
 
 - "No Foundry download credentials set": fill in the login options.
