@@ -1,0 +1,78 @@
+#!/bin/bash
+# Home Assistant add-on start script for Foundry VTT.
+# Reads add-on options from /data/options.json, turns them into the
+# environment variables the felddy/foundryvtt image understands, then hands
+# off to the image's own entrypoint as the unprivileged "node" user.
+set -euo pipefail
+
+OPTIONS=/data/options.json
+
+if [ ! -f "${OPTIONS}" ]; then
+  echo "[ha-foundry-vtt] ERROR: ${OPTIONS} not found. Is this running as a Home Assistant add-on?" >&2
+  exit 1
+fi
+
+# Read one option. Prints nothing when it is missing, null, or empty.
+# Booleans and numbers are printed as text (false stays "false").
+opt() {
+  jq -r --arg k "$1" \
+    'if has($k) and .[$k] != null then (.[$k] | tostring) else empty end' \
+    "${OPTIONS}"
+}
+
+# set_env ENV_NAME option_key  -> exports ENV_NAME only if the option has a value.
+set_env() {
+  local value
+  value="$(opt "$2")"
+  if [ -n "${value}" ]; then
+    export "$1=${value}"
+  fi
+}
+
+set_env FOUNDRY_USERNAME            foundry_username
+set_env FOUNDRY_PASSWORD            foundry_password
+set_env FOUNDRY_RELEASE_URL         foundry_release_url
+set_env FOUNDRY_LICENSE_KEY         foundry_license_key
+set_env FOUNDRY_ADMIN_KEY           foundry_admin_key
+set_env FOUNDRY_VERSION             foundry_version
+set_env FOUNDRY_WORLD               foundry_world
+set_env FOUNDRY_HOSTNAME            foundry_hostname
+set_env FOUNDRY_PROXY_SSL           foundry_proxy_ssl
+set_env FOUNDRY_PROXY_PORT          foundry_proxy_port
+set_env FOUNDRY_ROUTE_PREFIX        foundry_route_prefix
+set_env FOUNDRY_LANGUAGE            foundry_language
+set_env FOUNDRY_CSS_THEME           foundry_css_theme
+set_env FOUNDRY_TELEMETRY           foundry_telemetry
+set_env FOUNDRY_COMPRESS_WEBSOCKET  foundry_compress_websocket
+set_env FOUNDRY_MINIFY_STATIC_FILES foundry_minify_static_files
+set_env FOUNDRY_IP_DISCOVERY        foundry_ip_discovery
+set_env CONTAINER_PRESERVE_CONFIG   container_preserve_config
+set_env CONTAINER_CACHE_SIZE        container_cache_size
+set_env CONTAINER_VERBOSE           container_verbose
+set_env TZ                          timezone
+
+# Basic sanity check so the user gets a clear message instead of a crash loop.
+if [ -z "${FOUNDRY_RELEASE_URL:-}" ] \
+   && { [ -z "${FOUNDRY_USERNAME:-}" ] || [ -z "${FOUNDRY_PASSWORD:-}" ]; }; then
+  if [ ! -d /data/container_cache ] || [ -z "$(ls -A /data/container_cache 2>/dev/null)" ]; then
+    echo "[ha-foundry-vtt] ERROR: No Foundry download credentials set." >&2
+    echo "[ha-foundry-vtt] Fill in foundry_username and foundry_password (or foundry_release_url) on the add-on Configuration tab." >&2
+    exit 1
+  fi
+fi
+
+echo "[ha-foundry-vtt] Starting Foundry VTT (hostname: $(hostname))"
+
+# Foundry data lives in the add-on's persistent /data folder.
+# The base image runs as the "node" user, so make sure it can write there.
+chown node:node /data 2>/dev/null || true
+chmod a+rwx /data 2>/dev/null || true
+
+cd /home/node
+
+if command -v setpriv >/dev/null 2>&1; then
+  exec setpriv --reuid=node --regid=node --init-groups ./entrypoint.sh "$@"
+else
+  echo "[ha-foundry-vtt] WARNING: setpriv not found, running as root." >&2
+  exec ./entrypoint.sh "$@"
+fi

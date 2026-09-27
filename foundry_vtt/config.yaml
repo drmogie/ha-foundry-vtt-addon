@@ -1,0 +1,61 @@
+name: Foundry VTT
+version: "2026.09.26.02"
+slug: foundry_vtt
+description: Run your own Foundry Virtual Tabletop server inside Home Assistant
+url: https://github.com/drmogie/ha-foundry-vtt-addon
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+hassio_api: false
+ports:
+  30000/tcp: 30000
+ports_description:
+  30000/tcp: Foundry VTT web interface
+watchdog: http://[HOST]:[PORT:30000]/api/status
+options:
+  foundry_username: ""
+  foundry_password: ""
+  foundry_release_url: ""
+  foundry_license_key: ""
+  foundry_admin_key: ""
+  foundry_version: ""
+  foundry_world: ""
+  foundry_hostname: ""
+  foundry_proxy_ssl: false
+  foundry_proxy_port: null
+  foundry_route_prefix: ""
+  foundry_language: "en.core"
+  foundry_css_theme: "dark"
+  foundry_telemetry: false
+  foundry_compress_websocket: true
+  foundry_minify_static_files: true
+  foundry_ip_discovery: false
+  container_preserve_config: false
+  container_cache_size: 2
+  container_verbose: false
+  timezone: "America/Los_Angeles"
+schema:
+  foundry_username: str?
+  foundry_password: password?
+  foundry_release_url: str?
+  foundry_license_key: password?
+  foundry_admin_key: password?
+  foundry_version: str?
+  foundry_world: str?
+  foundry_hostname: str?
+  foundry_proxy_ssl: bool
+  foundry_proxy_port: port?
+  foundry_route_prefix: str?
+  foundry_language: str
+  foundry_css_theme: list(dark|fantasy|scifi)
+  foundry_telemetry: bool
+  foundry_compress_websocket: bool
+  foundry_minify_static_files: bool
+  foundry_ip_discovery: bool
+  container_preserve_config: bool
+  container_cache_size: int(1,)?
+  container_verbose: bool
+  timezone: str
