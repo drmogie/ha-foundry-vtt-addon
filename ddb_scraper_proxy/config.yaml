@@ -1,0 +1,21 @@
+name: "DDB Scraper Proxy"
+version: "2026.09.27.01"
+slug: "ddb_scraper_proxy"
+description: "Fetches a D&D Beyond character's public JSON server-side and serves it back with CORS headers, so Foundry VTT (blocked from reading it directly -- D&D Beyond sends no CORS header at all, public character or not) can pull it automatically by character ID. Public characters only -- this has no login of its own, so a private character just gets D&D Beyond's own error passed through."
+url: "https://github.com/drmogie/ddb-scraper-proxy"
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+init: false
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: "HTTP port the proxy listens on"
+options:
+  ddb_base_url: "https://character-service.dndbeyond.com/character/v5/character/"
+  allowed_origin: "*"
+schema:
+  ddb_base_url: str
+  allowed_origin: str

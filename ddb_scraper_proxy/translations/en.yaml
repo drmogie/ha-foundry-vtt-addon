@@ -1,0 +1,15 @@
+configuration:
+  ddb_base_url:
+    name: D&D Beyond Character API Address
+    description: >-
+      The address to scrape character data from. The character ID gets
+      appended straight onto the end of this, so it must end in "/". Change
+      this only if D&D Beyond changes their API address, or you want to
+      point the proxy at something else entirely for testing.
+  allowed_origin:
+    name: Allowed Origin (CORS)
+    description: >-
+      Which website is allowed to read this proxy's responses from a
+      browser. "*" (default) allows any site -- fine here since this only
+      ever serves already-public character data. Set it to your Foundry
+      URL (e.g. https://vtt.mogie.io) instead if you'd rather restrict it.

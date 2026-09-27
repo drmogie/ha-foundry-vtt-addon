@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.27.03
+
+- Added the DDB Scraper Proxy add-on (`ddb_scraper_proxy`) to this repository -- a companion proxy for the `ddb-live-importer` Foundry module. See ddb_scraper_proxy/CHANGELOG.md for its own version history.
+
 ## 2026.09.27.02
 
 - Fixes a real bug in .01: caching the installed Foundry app under /data/resources made Foundry refuse to start properly, because its app folder then resolved (through the symlink) to a path inside its own data path ("The data path ... must not be inside the application location ..."). This showed up as the license page reappearing even with a valid license saved. The app cache now lives under /config/resources instead, which is a separate mount, so it stays out of Foundry's data path. Also cleans up the old /data/resources folder automatically.
