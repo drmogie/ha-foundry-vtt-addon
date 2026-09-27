@@ -107,14 +107,22 @@ fi
 # on every restart, even though it already skips the download.
 # Fix: keep the installed app itself in /data too, so it survives restarts.
 APP_CACHE="${DATA_ROOT}/resources"
-if [ -e /home/node/resources ] && [ ! -L /home/node/resources ]; then
+mkdir -p "${APP_CACHE}"
+
+# Every container start, /home/node/resources shows up as a fresh, empty,
+# non-symlink folder (it is part of the container's own throwaway filesystem,
+# not /data) - NOT just the one time this feature was added. So only treat
+# it as something to migrate into the cache when it actually contains an
+# installed app; otherwise this would wipe out a good cache with an empty
+# folder on every single restart.
+if [ -e /home/node/resources ] && [ ! -L /home/node/resources ] \
+   && [ -f /home/node/resources/app/package.json ]; then
   echo "[ha-foundry-vtt] Saving the installed Foundry app to ${APP_CACHE} for next restart."
   rm -rf "${APP_CACHE}"
   mkdir -p "${APP_CACHE}"
-  cp -a /home/node/resources/. "${APP_CACHE}/" 2>/dev/null || true
-  rm -rf /home/node/resources
+  cp -a /home/node/resources/. "${APP_CACHE}/"
 fi
-mkdir -p "${APP_CACHE}"
+rm -rf /home/node/resources
 ln -sfn "${APP_CACHE}" /home/node/resources
 if [ "$(stat -c %U "${APP_CACHE}")" != "node" ]; then
   chown -R node:node "${APP_CACHE}" 2>/dev/null || true
