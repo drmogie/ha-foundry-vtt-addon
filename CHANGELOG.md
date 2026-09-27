@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.27.02
+
+- Fixes a real bug in .01: caching the installed Foundry app under /data/resources made Foundry refuse to start properly, because its app folder then resolved (through the symlink) to a path inside its own data path ("The data path ... must not be inside the application location ..."). This showed up as the license page reappearing even with a valid license saved. The app cache now lives under /config/resources instead, which is a separate mount, so it stays out of Foundry's data path. Also cleans up the old /data/resources folder automatically.
+
 ## 2026.09.27.01
 
 - Fixes the .06 restart fix itself: the previous version still reinstalled Foundry every restart. The container's own filesystem resets on every start, so the check meant to migrate an old install was wiping out the good saved copy in /data before ever using it. It now only migrates when there is an actual installed app to save, so cached restarts should finally be fast.

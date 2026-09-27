@@ -102,33 +102,54 @@ else
 fi
 
 # Home Assistant recreates this container on every start/stop, which throws
-# away the installed Foundry application (it only keeps /data). That means
-# the base image has to unzip the ~3.5-minute Foundry install from scratch
-# on every restart, even though it already skips the download.
-# Fix: keep the installed app itself in /data too, so it survives restarts.
-APP_CACHE="${DATA_ROOT}/resources"
-mkdir -p "${APP_CACHE}"
+# away the installed Foundry application (it only keeps /data and /config).
+# That means the base image has to unzip the ~3.5-minute Foundry install
+# from scratch on every restart, even though it already skips the download.
+# Fix: keep the installed app itself around too, so it survives restarts.
+#
+# IMPORTANT: this cache must live under CONFIG_ROOT (/config, the separate
+# addon_config mount), never under DATA_ROOT (/data). Foundry refuses to
+# start if its own application folder resolves (through symlinks) to a path
+# inside its data path ("The data path ... must not be inside the
+# application location ..."). /home/node/resources is a symlink, and its
+# real target counts for that check - putting it under /data trips it, even
+# though /data is where Foundry's Data/Config/Logs folders themselves
+# correctly live (those are meant to be inside the data path).
+# One-time cleanup: an earlier version of this add-on (2026.09.27.01)
+# mistakenly cached the app under /data/resources, which is what caused the
+# Foundry data-path error above. Remove it if present.
+if [ -e "${DATA_ROOT}/resources" ]; then
+  echo "[ha-foundry-vtt] Removing old app cache at ${DATA_ROOT}/resources (moved to ${CONFIG_ROOT})."
+  rm -rf "${DATA_ROOT}/resources"
+fi
 
-# Every container start, /home/node/resources shows up as a fresh, empty,
-# non-symlink folder (it is part of the container's own throwaway filesystem,
-# not /data) - NOT just the one time this feature was added. So only treat
-# it as something to migrate into the cache when it actually contains an
-# installed app; otherwise this would wipe out a good cache with an empty
-# folder on every single restart.
-if [ -e /home/node/resources ] && [ ! -L /home/node/resources ] \
-   && [ -f /home/node/resources/app/package.json ]; then
-  echo "[ha-foundry-vtt] Saving the installed Foundry app to ${APP_CACHE} for next restart."
-  rm -rf "${APP_CACHE}"
+if [ -d "${CONFIG_ROOT}" ]; then
+  APP_CACHE="${CONFIG_ROOT}/resources"
   mkdir -p "${APP_CACHE}"
-  cp -a /home/node/resources/. "${APP_CACHE}/"
-fi
-rm -rf /home/node/resources
-ln -sfn "${APP_CACHE}" /home/node/resources
-if [ "$(stat -c %U "${APP_CACHE}")" != "node" ]; then
-  chown -R node:node "${APP_CACHE}" 2>/dev/null || true
-fi
-if [ -f "${APP_CACHE}/app/package.json" ]; then
-  echo "[ha-foundry-vtt] Found the installed Foundry app already saved, skipping the unzip."
+
+  # Every container start, /home/node/resources shows up as a fresh, empty,
+  # non-symlink folder (it is part of the container's own throwaway
+  # filesystem) - NOT just the one time this feature was added. So only
+  # treat it as something to migrate into the cache when it actually
+  # contains an installed app; otherwise this would wipe out a good cache
+  # with an empty folder on every single restart.
+  if [ -e /home/node/resources ] && [ ! -L /home/node/resources ] \
+     && [ -f /home/node/resources/app/package.json ]; then
+    echo "[ha-foundry-vtt] Saving the installed Foundry app to ${APP_CACHE} for next restart."
+    rm -rf "${APP_CACHE}"
+    mkdir -p "${APP_CACHE}"
+    cp -a /home/node/resources/. "${APP_CACHE}/"
+  fi
+  rm -rf /home/node/resources
+  ln -sfn "${APP_CACHE}" /home/node/resources
+  if [ "$(stat -c %U "${APP_CACHE}")" != "node" ]; then
+    chown -R node:node "${APP_CACHE}" 2>/dev/null || true
+  fi
+  if [ -f "${APP_CACHE}/app/package.json" ]; then
+    echo "[ha-foundry-vtt] Found the installed Foundry app already saved, skipping the unzip."
+  fi
+else
+  echo "[ha-foundry-vtt] WARNING: ${CONFIG_ROOT} is not mounted. Restarts will reinstall Foundry." >&2
 fi
 
 # If we already have a cached copy of this Foundry version, skip login
