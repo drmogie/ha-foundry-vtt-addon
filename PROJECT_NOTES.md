@@ -56,3 +56,17 @@ Open risks to check on first real run:
   shows an Open Web UI button that opens Foundry.
 - No ingress: Foundry needs its own port and websockets, so the button opens
   the direct port 30000 address on the HA host.
+
+## 2026-09-27: skip redownload on restart (version 2026.09.26.05)
+
+- User's foundry_username/password were set, which the base image checks
+  before its own container_cache (order: release_url, username/password,
+  cache) - so it redownloaded and reinstalled Foundry on every restart even
+  though a cached copy already existed.
+- Fix: run.sh now checks for a cached foundryvtt-<version>.zip in
+  CONTAINER_CACHE before starting; if found, it unsets
+  FOUNDRY_USERNAME/PASSWORD/RELEASE_URL so the base image falls through to
+  its own cache path instead of logging in again.
+- Tested the unset logic standalone; not tested against the real image
+  (no Docker here). Watch the Log tab for "Found cached Foundry" on the
+  second start.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.26.05
+
+- Skips the download and login on restart when a cached copy of your Foundry version already exists. Fixes a full download and install happening every restart.
+
 ## 2026.09.26.04
 
 - Added an Open Web UI button on the add-on page. It opens the Foundry server page.

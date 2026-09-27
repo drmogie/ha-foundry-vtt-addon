@@ -89,6 +89,18 @@ Foundry ties your license to the container hostname. Home Assistant gives
 this add-on a fixed hostname, so restarts are fine. Do not run the same
 license on two servers at once.
 
+## Restarts are fast after the first start
+
+The first start downloads Foundry. After that, it is cached, so a normal
+restart or reboot should not download it again.
+
+If it downloads every time, check:
+
+- foundry_version is left empty, or is set to the same version every time.
+- container_cache_size is at least 1.
+- The Log tab, right after "Starting Foundry VTT", for a
+  "Found cached Foundry" message. If you see it, the cache worked.
+
 ## Troubleshooting
 
 - "No Foundry download credentials set": fill in the login options.

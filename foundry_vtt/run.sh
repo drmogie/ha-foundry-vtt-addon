@@ -101,6 +101,16 @@ else
   echo "[ha-foundry-vtt] WARNING: ${CONFIG_ROOT} is not mounted. Using /data only." >&2
 fi
 
+# If we already have a cached copy of this Foundry version, skip login
+# entirely so we don't redownload it on every restart. The base image tries,
+# in order: foundry_release_url, then username/password, then the cache -
+# so as long as credentials are set, it ignores a cache that's already there.
+CACHE_DIR="${CONTAINER_CACHE:-/data/container_cache}"
+if [ -n "${FOUNDRY_VERSION:-}" ] && [ -f "${CACHE_DIR}/foundryvtt-${FOUNDRY_VERSION}.zip" ]; then
+  echo "[ha-foundry-vtt] Found cached Foundry ${FOUNDRY_VERSION} in ${CACHE_DIR}, skipping download."
+  unset FOUNDRY_USERNAME FOUNDRY_PASSWORD FOUNDRY_RELEASE_URL
+fi
+
 cd /home/node
 
 if command -v setpriv >/dev/null 2>&1; then
