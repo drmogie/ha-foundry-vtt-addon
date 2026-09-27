@@ -111,3 +111,17 @@ Open risks to check on first real run:
 - Not verified beyond the sandbox simulation - no Docker here. Ask Mogie
   to update, restart twice, and check the Log tab for "Found the installed
   Foundry app already saved, skipping the unzip." on the second restart.
+
+## 2026-09-27: added DDB Scraper Proxy as a second add-on (version 2026.09.27.03)
+
+- Mogie asked to both push ddb-scraper-proxy to GitHub as its own repo AND
+  add it into this repo (Tabletop Add-ons), so it's installable from either
+  place.
+- Copied ddb_scraper_proxy/ (config.yaml, build.yaml, Dockerfile, run.sh,
+  server.py, translations/, DOCS.md, CHANGELOG.md) in as-is, as a sibling
+  to foundry_vtt/. It keeps its own independent version (2026.09.27.01,
+  tracked in its own CHANGELOG.md) -- not lockstepped with foundry_vtt's.
+- Updated root README.md's Add-ons list and version badge, and root
+  CHANGELOG.md with a repo-level entry for the addition.
+- Standalone repo: https://github.com/drmogie/ddb-scraper-proxy (its own
+  PROJECT_NOTES.md lives there).
