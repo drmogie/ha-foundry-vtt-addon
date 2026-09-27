@@ -38,3 +38,14 @@ Open risks to check on first real run:
 - repository.yaml name is now "Tabletop Add-ons" (chosen from FGA, Tabletop,
   Critical Hit, Dungeon Master options).
 - GitHub repo name stays ha-foundry-vtt-addon. Maintainer field still drmogie.
+
+## 2026-09-26: data in add-on config folder (version 2026.09.26.03)
+
+- User wanted to reach Foundry files from HA (Samba, File editor).
+- felddy scripts hardcode /data (DATA_DIR in entrypoint.sh, CONFIG_DIR in
+  launcher.sh), so --dataPath cannot be moved.
+- Fix: config.yaml maps addon_config (mounted at /config). run.sh symlinks
+  /data/Data, /data/Config and /data/Logs to /config/<name>. Existing real
+  folders are copied over first.
+- container_cache stays in /data (large Foundry zips, no need to browse).
+- Not verified on a real server. Symlinked data dir is the main thing to watch.

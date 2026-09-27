@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.26.03
+
+- Foundry Data, Config and Logs now live in the add-on config folder (addon_configs), so you can browse them with Samba or the File editor add-on.
+- Existing files from earlier versions are moved over on first start.
+
 ## 2026.09.26.02
 
 - Renamed the add-on repository to "Tabletop Add-ons" (store display name only).

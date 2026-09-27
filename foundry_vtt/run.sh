@@ -63,10 +63,43 @@ fi
 
 echo "[ha-foundry-vtt] Starting Foundry VTT (hostname: $(hostname))"
 
-# Foundry data lives in the add-on's persistent /data folder.
-# The base image runs as the "node" user, so make sure it can write there.
+# The base image runs as the "node" user, so make sure it can write to /data.
 chown node:node /data 2>/dev/null || true
 chmod a+rwx /data 2>/dev/null || true
+
+# Keep Foundry's important folders in the add-on config folder, so you can
+# browse them from Samba or the File editor add-on.
+# The base image hardcodes /data, so we link /data/<name> to /config/<name>.
+CONFIG_ROOT="${CONFIG_ROOT:-/config}"
+DATA_ROOT="${DATA_ROOT:-/data}"
+
+link_dir() {
+  local name="$1"
+  local src="${DATA_ROOT}/${name}"
+  local dst="${CONFIG_ROOT}/${name}"
+  mkdir -p "${dst}"
+  # Move anything from an earlier run (before this feature) into the config folder.
+  if [ -d "${src}" ] && [ ! -L "${src}" ]; then
+    echo "[ha-foundry-vtt] Moving existing ${name} folder to ${dst}"
+    cp -a "${src}/." "${dst}/"
+    rm -rf "${src}"
+  fi
+  ln -sfn "${dst}" "${src}"
+  # Only fix ownership when needed, so big worlds do not slow every start.
+  if [ "$(stat -c %U "${dst}")" != "node" ]; then
+    chown -R node:node "${dst}" 2>/dev/null || true
+  fi
+  chmod a+rwx "${dst}" 2>/dev/null || true
+}
+
+if [ -d "${CONFIG_ROOT}" ]; then
+  for name in Data Config Logs; do
+    link_dir "${name}"
+  done
+  echo "[ha-foundry-vtt] Foundry Data, Config and Logs are in the add-on config folder."
+else
+  echo "[ha-foundry-vtt] WARNING: ${CONFIG_ROOT} is not mounted. Using /data only." >&2
+fi
 
 cd /home/node
 

@@ -56,10 +56,29 @@ In Nginx Proxy Manager:
 - `container_verbose`: more log detail.
 - `timezone`: for example `America/Los_Angeles`.
 
-## Data and backups
+## Your files (Samba and File editor)
 
-- Everything lives in the add-on's data folder.
-- Home Assistant backups include it, so large worlds make large backups.
+Foundry's folders are in the add-on config folder:
+
+- `Data`: worlds, modules, systems, and assets.
+- `Config`: Foundry settings and license.
+- `Logs`: Foundry log files.
+
+To find it:
+
+- In Samba, open the `addon_configs` share, then the folder ending in `foundry_vtt`.
+- Or use the File editor add-on and open `/addon_configs`.
+
+To move a world in from another server:
+
+1. Stop the add-on.
+2. Copy the world folder into `Data/worlds`.
+3. Start the add-on.
+
+## Backups
+
+- Home Assistant backups include the add-on config folder.
+- Large worlds make large backups.
 - You can exclude this add-on from a backup if your world is big.
 
 ## License note

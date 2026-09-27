@@ -1,7 +1,7 @@
 # Tabletop Add-ons
 
 [![Add repository to my Home Assistant][repo-badge]][repo-url]
-![Version](https://img.shields.io/badge/version-2026.09.26.02-blue)
+![Version](https://img.shields.io/badge/version-2026.09.26.03-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 Home Assistant add-on repository for running your own
