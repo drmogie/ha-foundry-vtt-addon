@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.26.04
+
+- Added an Open Web UI button on the add-on page. It opens the Foundry server page.
+
 ## 2026.09.26.03
 
 - Foundry Data, Config and Logs now live in the add-on config folder (addon_configs), so you can browse them with Samba or the File editor add-on.

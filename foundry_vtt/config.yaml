@@ -1,5 +1,5 @@
 name: Foundry VTT
-version: "2026.09.26.03"
+version: "2026.09.26.04"
 slug: foundry_vtt
 description: Run your own Foundry Virtual Tabletop server inside Home Assistant
 url: https://github.com/drmogie/ha-foundry-vtt-addon
@@ -18,6 +18,7 @@ ports:
 ports_description:
   30000/tcp: Foundry VTT web interface
 watchdog: http://[HOST]:[PORT:30000]/api/status
+webui: http://[HOST]:[PORT:30000]
 options:
   foundry_username: ""
   foundry_password: ""

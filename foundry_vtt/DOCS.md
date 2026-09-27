@@ -13,6 +13,8 @@
 
 Watch the Log tab. It shows download and license messages.
 
+When it is running, click **Open Web UI** on the add-on Info page to open the Foundry server page.
+
 ## Options
 
 ### Login (pick one way)

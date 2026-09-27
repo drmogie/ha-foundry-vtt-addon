@@ -49,3 +49,10 @@ Open risks to check on first real run:
   folders are copied over first.
 - container_cache stays in /data (large Foundry zips, no need to browse).
 - Not verified on a real server. Symlinked data dir is the main thing to watch.
+
+## 2026-09-26: Open Web UI button (version 2026.09.26.04)
+
+- Added `webui: http://[HOST]:[PORT:30000]` to config.yaml so the add-on page
+  shows an Open Web UI button that opens Foundry.
+- No ingress: Foundry needs its own port and websockets, so the button opens
+  the direct port 30000 address on the HA host.
