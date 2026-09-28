@@ -125,3 +125,21 @@ Open risks to check on first real run:
   CHANGELOG.md with a repo-level entry for the addition.
 - Standalone repo: https://github.com/drmogie/ddb-scraper-proxy (its own
   PROJECT_NOTES.md lives there).
+
+## 2026-09-28: ddb_scraper_proxy docs update (version 2026.09.28.01, this add-on only)
+
+- Same fix/finding as the standalone ddb-scraper-proxy repo's own
+  PROJECT_NOTES.md entry for today: exposing the add-on via a path-based
+  Nginx Proxy Manager "Custom Location" under an existing domain doesn't
+  work reliably; a dedicated subdomain proxy host does. DOCS.md,
+  CHANGELOG.md, and config.yaml updated in ddb_scraper_proxy/ to match the
+  standalone repo's copy (still not auto-synced -- copied by hand).
+- foundry_vtt/ untouched -- this was ddb_scraper_proxy-only.
+- New wrinkle: this is the first time a single add-on inside this
+  multi-add-on repo got its own release independent of the others. Tagged
+  the GitHub Release as `ddb_scraper_proxy-2026.09.28.01` (prefixed with
+  the add-on name) rather than the repo's usual plain `YYYY.MM.DD.##`, to
+  disambiguate it from a root-level/whole-repo release like `2026.09.27.03`.
+  This is a new precedent, not yet confirmed with Mogie -- worth checking
+  he's fine with prefixed tags for single-add-on releases in a
+  multi-add-on repo going forward, versus some other scheme.
