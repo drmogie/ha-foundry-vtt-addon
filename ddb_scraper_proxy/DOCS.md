@@ -70,6 +70,26 @@ Point `ddb-live-importer` (or anything else) at
 `http://<this device's address>:8099/character/<id>` to fetch a public
 character with no manual copy/paste step at all.
 
+## Exposing it externally (optional)
+
+If your Foundry instance is reachable from the internet and you want this
+proxy reachable the same way, give it its own subdomain in your reverse
+proxy rather than a path under an existing domain:
+
+- **Works:** a dedicated subdomain as its own proxy host, e.g.
+  `https://ddb-proxy.example.com` -> this add-on's container on port 8099.
+- **Not recommended:** adding a path (e.g. `/ddb-proxy`) as a "Custom
+  Location" under an existing domain like `https://vtt.example.com`. In
+  Nginx Proxy Manager specifically, this was found to silently misroute
+  or fail to connect -- even after fixing the location's match priority,
+  it still couldn't reach the container reliably, while the exact same
+  container worked immediately as its own proxy host (confirmed
+  2026-09-27 against a real NPM instance; root cause not fully isolated,
+  likely a difference in how NPM's "Custom Location" template builds
+  `proxy_pass` versus a full "Proxy Host" -- no GUI-only fix found).
+
+Just give it its own subdomain and skip the path-based route.
+
 ## Troubleshooting
 
 Check the add-on's **Log** tab first -- every request logs one line

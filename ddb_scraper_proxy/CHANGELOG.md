@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.09.28.01
+
+- Documentation: added guidance on exposing the proxy externally --
+  recommend a dedicated subdomain proxy host instead of a path-based
+  "Custom Location" under an existing domain, after confirming the latter
+  can silently fail to route in Nginx Proxy Manager.
+
+
 ## 2026.09.27.01
 
 - Initial release. Proxies `GET /character/<id>` to D&D Beyond's character
