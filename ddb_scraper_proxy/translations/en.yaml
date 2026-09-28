@@ -12,4 +12,4 @@ configuration:
       Which website is allowed to read this proxy's responses from a
       browser. "*" (default) allows any site -- fine here since this only
       ever serves already-public character data. Set it to your Foundry
-      URL (e.g. https://vtt.mogie.io) instead if you'd rather restrict it.
+      URL (e.g. https://vtt.example.com) instead if you'd rather restrict it.

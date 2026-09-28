@@ -51,7 +51,7 @@ allowed_origin: "*"
   browser (the CORS `Access-Control-Allow-Origin` header). `*` (default)
   allows any site -- since this only ever serves data D&D Beyond already
   hands out with no login, that's not really an exposure, just an open
-  door. Set it to your Foundry URL (e.g. `https://vtt.mogie.io`) if you'd
+  door. Set it to your Foundry URL (e.g. `https://vtt.example.com`) if you'd
   rather lock it down to just that.
 
 ## Using it
