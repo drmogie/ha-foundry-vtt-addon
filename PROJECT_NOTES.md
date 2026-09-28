@@ -143,3 +143,9 @@ Open risks to check on first real run:
   This is a new precedent, not yet confirmed with Mogie -- worth checking
   he's fine with prefixed tags for single-add-on releases in a
   multi-add-on repo going forward, versus some other scheme.
+
+## 2026-09-28: ddb_scraper_proxy is now the only copy (standalone repo removed)
+
+- Mogie removed the standalone `drmogie/ddb-scraper-proxy` GitHub repo --
+  this add-on's copy here is now the only maintained one, no more
+  by-hand syncing between two repos.
