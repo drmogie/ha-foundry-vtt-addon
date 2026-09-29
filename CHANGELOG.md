@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.04
+
+- Foundry VTT MCP & Rest Relay 2026.09.29.10: the compendium import route can add spells, features and gear straight onto an actor.
+
 ## 2026.09.29.03
 
 - Adds the Foundry VTT MCP & Rest Relay add-on (`foundry_mcp_rest_relay`), moved here from the foundry-mcp repository and renamed from FGA Relay. See foundry_mcp_rest_relay/CHANGELOG.md for its own version history.

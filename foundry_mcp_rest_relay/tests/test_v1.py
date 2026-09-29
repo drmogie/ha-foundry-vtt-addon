@@ -466,9 +466,11 @@ async def test_new_write_routes_send_the_right_command(relay):
         assert ok(await api.post("/api/v1/journals", json={"name": "Notes", "content": "hi"}))
         assert ok(await api.post("/api/v1/tables/roll", json={"name": "Loot"}))
         assert ok(await api.post("/api/v1/compendium/import", json={"pack": "dnd5e.monsters", "id": "m1", "place": True}))
+        assert ok(await api.post("/api/v1/compendium/import", json={"pack": "dnd5e.spells", "ids": ["fb", "hx"], "actorUuid": "Actor.a1"}))
         kinds = [k for k, _ in f.seen]
         assert kinds == ["condition", "deathSave", "check", "resource", "resource", "target", "tokenCreate", "tokenSet",
-                         "journal", "tableRoll", "importFromPack"]
+                         "journal", "tableRoll", "importFromPack", "importFromPack"]
+        assert f.seen[11][1] == {"pack": "dnd5e.spells", "ids": ["fb", "hx"], "actorUuid": "Actor.a1", "place": False, "hidden": False}
         assert f.seen[2][1] == {"uuid": "Actor.a1", "kind": "save", "key": "dex", "dc": 15.0, "advantage": True, "disadvantage": False}
         assert f.seen[3][1] == {"uuid": "Actor.a1", "target": "slot", "level": 2, "mode": "spend", "amount": 1}
         assert f.seen[8][1] == {"name": "Notes", "content": "hi"}
@@ -492,6 +494,7 @@ async def test_new_write_routes_check_input_and_scope(relay):
             ("/api/v1/resources", {"target": "uses"}, "need itemUuid"),
             ("/api/v1/journals", {}, "Give a name"),
             ("/api/v1/tables/roll", {}, "table uuid or name"),
+            ("/api/v1/compendium/import", {"pack": "dnd5e.spells"}, "Give an id"),
         ]
         for path, body, words in bad:
             r = await api.post(path, json=body)

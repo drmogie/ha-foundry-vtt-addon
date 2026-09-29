@@ -159,7 +159,9 @@ class TableRollBody(BaseModel):
 
 class ImportBody(BaseModel):
     pack: str
-    id: str
+    id: str | None = None
+    ids: list[str] | None = None
+    actorUuid: str | None = None
     name: str | None = None
     folder: str | None = None
     place: bool = False
@@ -436,4 +438,6 @@ def register_v1(
 
     @app.post("/api/v1/compendium/import")
     async def import_from_pack(body: ImportBody, request: Request, client_id: str | None = None):
+        if not (body.id or body.ids):
+            raise HTTPException(400, "Give an id, or a list of ids from the pack index.")
         return await run(request, "importFromPack", body.model_dump(), write=True, client_id=client_id)

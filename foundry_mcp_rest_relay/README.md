@@ -1,6 +1,6 @@
 # Foundry VTT MCP & Rest Relay
 
-Version: 2026.09.29.9
+Version: 2026.09.29.10
 
 Our own relay between Foundry VTT and tools like Claude.
 It is the REST API. The MCP server sits on top of it.
@@ -48,7 +48,7 @@ More write routes (write token, allowed worlds only):
 - POST /api/v1/tokens with `actorUuid` makes a token. PATCH /api/v1/tokens with `uuid` shows, hides, rotates or moves one.
 - POST /api/v1/journals with `name` and `content` or `pages`. Add `uuid` to add pages to an existing journal.
 - POST /api/v1/tables/roll with `name` or `uuid`. A quiet roll (`chat` false) works with a read token.
-- POST /api/v1/compendium/import with `pack` and `id`. Add `place` to put the token on the scene.
+- POST /api/v1/compendium/import with `pack` and `id`. Add `place` to put the token on the scene. For an Item compendium, add `actorUuid` (and `ids` for several entries, up to 30) to copy spells, features or gear straight onto an actor.
 
 The web page also shows a Recent changes list, from GET /api/activity (login needed).
 

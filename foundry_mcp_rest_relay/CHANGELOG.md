@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.29.10
+- The compendium import route can add Item entries (spells, features, gear) straight onto an actor: `actorUuid` plus `id` or `ids` (up to 30).
+- Asking for an import with no id now says so in plain words.
+- Needs FGA Relay Connect 2026.09.29.9 in Foundry.
+
 ## 2026.09.29.9
 - Renamed to Foundry VTT MCP & Rest Relay. Moved into the Tabletop Add-ons repository (ha-foundry-vtt-addon).
 - New add-on ID (foundry_mcp_rest_relay), so it installs as a new add-on. Set the login again. New connect key and new tokens.
