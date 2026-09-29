@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.11
+
+- The use item route takes clearArea, which removes the spell area a cast leaves on the board.
+
 ## 2026.09.29.10
 - The compendium import route can add Item entries (spells, features, gear) straight onto an actor: `actorUuid` plus `id` or `ids` (up to 30).
 - Asking for an import with no id now says so in plain words.

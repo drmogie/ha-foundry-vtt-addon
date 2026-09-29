@@ -525,3 +525,9 @@ async def test_web_page_can_read_the_activity_log(relay):
     assert (await web.get("/api/activity", params={"token": "Nobody"})).json()["activity"] == []
     assert "Recent changes" in (await anon.get("/")).text
     await anon.aclose(); await api.aclose(); await web.aclose()
+
+
+def test_use_item_body_has_clear_area():
+    from app.v1 import UseItemBody
+    assert UseItemBody(uuid="Item.i1").model_dump()["clearArea"] is False
+    assert UseItemBody(uuid="Item.i1", clearArea=True).model_dump()["clearArea"] is True

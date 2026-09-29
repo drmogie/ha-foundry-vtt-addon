@@ -53,6 +53,7 @@ class UseItemBody(BaseModel):
     uuid: str
     targets: list[str] | None = None
     activityId: str | None = None
+    clearArea: bool = False
 
 
 class MoveBody(BaseModel):

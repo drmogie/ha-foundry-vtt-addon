@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.05
+
+- Foundry VTT MCP & Rest Relay 2026.09.29.11: the use item route takes clearArea to remove the spell area a cast leaves on the board.
+
 ## 2026.09.29.04
 
 - Foundry VTT MCP & Rest Relay 2026.09.29.10: the compendium import route can add spells, features and gear straight onto an actor.
