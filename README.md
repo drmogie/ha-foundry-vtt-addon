@@ -16,19 +16,26 @@ stack on Home Assistant.
   character's public JSON server-side and serves it back with CORS
   headers, so Foundry VTT can pull it directly. Companion to the
   `ddb-live-importer` Foundry module.
+- **Foundry VTT MCP & Rest Relay** (`foundry_mcp_rest_relay`): a REST API and
+  MCP relay between Foundry VTT and tools like Claude. One login, API tokens,
+  a list of recent changes. Pairs with the FGA Relay Connect module and the
+  MCP server in [drmogie/foundry-mcp](https://github.com/drmogie/foundry-mcp).
+  The image is built by GitHub Actions. After the first build, set the package
+  `aarch64-addon-foundry-mcp-rest-relay` and `amd64-addon-foundry-mcp-rest-relay`
+  to Public on GitHub.
 
 ## Install
 
 1. Click the badge above, or in Home Assistant go to
    Settings, Add-ons, Add-on Store, three-dot menu, Repositories.
 2. Add this URL: `https://github.com/drmogie/ha-foundry-vtt-addon`
-3. Install **Foundry VTT** and/or **DDB Scraper Proxy**.
+3. Install **Foundry VTT**, **DDB Scraper Proxy** and/or **Foundry VTT MCP & Rest Relay**.
 4. Foundry VTT: fill in your foundryvtt.com login on the Configuration tab,
    start it, and open `http://<your-ha-ip>:30000`.
 5. DDB Scraper Proxy: start it as-is (defaults work for public characters).
 
 See [foundry_vtt/DOCS.md](foundry_vtt/DOCS.md) and
-[ddb_scraper_proxy/DOCS.md](ddb_scraper_proxy/DOCS.md) for all options.
+[ddb_scraper_proxy/DOCS.md](ddb_scraper_proxy/DOCS.md) for all options. The relay has its own [README](foundry_mcp_rest_relay/README.md).
 
 ## You need a Foundry license
 

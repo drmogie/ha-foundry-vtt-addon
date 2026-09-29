@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.03
+
+- Adds the Foundry VTT MCP & Rest Relay add-on (`foundry_mcp_rest_relay`), moved here from the foundry-mcp repository and renamed from FGA Relay. See foundry_mcp_rest_relay/CHANGELOG.md for its own version history.
+
 ## 2026.09.29.02
 
 - Adds a `foundry_auto_update` option (default off). Off keeps Foundry pinned to whatever version is already installed across restarts and add-on updates; the base image's Foundry build tag floats, so without this a plain add-on update could silently install a newer Foundry version. Turn it on, or set `foundry_version` explicitly, to change that.

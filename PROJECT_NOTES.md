@@ -203,3 +203,11 @@ Open risks to check on first real run:
   surprise reinstall.
 - Documented in `foundry_vtt/DOCS.md` under Server options and in the
   "Restarts are fast" troubleshooting section.
+
+## 2026-09-29: relay moved in
+
+- Foundry VTT MCP & Rest Relay (`foundry_mcp_rest_relay`) moved here from drmogie/foundry-mcp. Was called FGA Relay.
+- Reason: keep the tabletop add-ons together in one store repository.
+- New repository means a new add-on ID in Home Assistant (8126043a_foundry_mcp_rest_relay). Data does not carry over: set the login again, new connect key, new API tokens.
+- Image is built by .github/workflows/build-foundry-mcp-rest-relay.yml and pushed to ghcr.io. Packages must be set to Public once.
+- The Foundry module (fga-relay-connect) and the MCP server stay in foundry-mcp.
