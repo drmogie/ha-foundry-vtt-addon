@@ -152,11 +152,36 @@ else
   echo "[ha-foundry-vtt] WARNING: ${CONFIG_ROOT} is not mounted. Restarts will reinstall Foundry." >&2
 fi
 
+CACHE_DIR="${CONTAINER_CACHE:-/data/container_cache}"
+
+# Foundry updates: the felddy/foundryvtt base image tag this add-on builds
+# from floats (new Foundry builds land under the same tag), so an add-on
+# update/rebuild can silently pull in a newer Foundry version even though
+# foundry_version was left empty. By default (foundry_auto_update: false),
+# stay on whatever version is already installed instead. Turn
+# foundry_auto_update on, or set foundry_version explicitly, to change that.
+FOUNDRY_AUTO_UPDATE="$(opt foundry_auto_update)"
+if [ "${FOUNDRY_AUTO_UPDATE:-false}" != "true" ] && [ -z "${FOUNDRY_VERSION:-}" ]; then
+  INSTALLED_VERSION=""
+  if [ -f "${APP_CACHE:-}/app/package.json" ]; then
+    INSTALLED_VERSION="$(jq -r '.version // empty' "${APP_CACHE}/app/package.json" 2>/dev/null || true)"
+  fi
+  if [ -z "${INSTALLED_VERSION}" ] && [ -d "${CACHE_DIR}" ]; then
+    INSTALLED_VERSION="$(ls "${CACHE_DIR}"/foundryvtt-*.zip 2>/dev/null \
+      | sed -E 's#.*/foundryvtt-(.+)\.zip#\1#' | sort -V | tail -n1)"
+  fi
+  if [ -n "${INSTALLED_VERSION}" ]; then
+    export FOUNDRY_VERSION="${INSTALLED_VERSION}"
+    echo "[ha-foundry-vtt] Auto-update is off, staying on the installed Foundry ${FOUNDRY_VERSION}."
+  else
+    echo "[ha-foundry-vtt] Auto-update is off, but no installed version was found yet - installing the version this add-on bundles."
+  fi
+fi
+
 # If we already have a cached copy of this Foundry version, skip login
 # entirely so we don't redownload it on every restart. The base image tries,
 # in order: foundry_release_url, then username/password, then the cache -
 # so as long as credentials are set, it ignores a cache that's already there.
-CACHE_DIR="${CONTAINER_CACHE:-/data/container_cache}"
 if [ -n "${FOUNDRY_VERSION:-}" ] && [ -f "${CACHE_DIR}/foundryvtt-${FOUNDRY_VERSION}.zip" ]; then
   echo "[ha-foundry-vtt] Found cached Foundry ${FOUNDRY_VERSION} in ${CACHE_DIR}, skipping download."
   unset FOUNDRY_USERNAME FOUNDRY_PASSWORD FOUNDRY_RELEASE_URL

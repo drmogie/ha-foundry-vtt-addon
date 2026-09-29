@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.02
+
+- Adds a `foundry_auto_update` option (default off). Off keeps Foundry pinned to whatever version is already installed across restarts and add-on updates; the base image's Foundry build tag floats, so without this a plain add-on update could silently install a newer Foundry version. Turn it on, or set `foundry_version` explicitly, to change that.
+
 ## 2026.09.29.01
 
 - Adds an icon and logo to the Add-on Store listing: Foundry Virtual Tabletop's own d20 mark (via homarr-labs/dashboard-icons).

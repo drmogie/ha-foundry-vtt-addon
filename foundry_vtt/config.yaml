@@ -1,5 +1,5 @@
 name: Foundry VTT
-version: "2026.09.29.01"
+version: "2026.09.29.02"
 slug: foundry_vtt
 description: Run your own Foundry Virtual Tabletop server inside Home Assistant
 url: https://github.com/drmogie/ha-foundry-vtt-addon
@@ -26,6 +26,7 @@ options:
   foundry_license_key: ""
   foundry_admin_key: ""
   foundry_version: ""
+  foundry_auto_update: false
   foundry_world: ""
   foundry_hostname: ""
   foundry_proxy_ssl: false
@@ -48,6 +49,7 @@ schema:
   foundry_license_key: password?
   foundry_admin_key: password?
   foundry_version: str?
+  foundry_auto_update: bool
   foundry_world: str?
   foundry_hostname: str?
   foundry_proxy_ssl: bool

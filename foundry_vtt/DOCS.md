@@ -26,8 +26,15 @@ When it is running, click **Open Web UI** on the add-on Info page to open the Fo
 ### Server
 
 - `foundry_admin_key`: admin password. If empty, no admin password is set.
-- `foundry_version`: leave empty for the newest version the image supports.
-  Set it to pin a version, like `14.367`.
+- `foundry_version`: leave empty to let `foundry_auto_update` (below)
+  decide. Set it to pin a version yourself, like `14.367` - this always
+  wins over `foundry_auto_update`.
+- `foundry_auto_update`: default off. Off means restarts and add-on updates
+  keep whatever Foundry version is already installed. On means a restart
+  can install a newer Foundry version if this add-on's image bundles one
+  (the add-on's own base image floats to new Foundry builds over time, so
+  "off" is the safer default if you don't want a version change you didn't
+  ask for).
 - `foundry_world`: folder name of a world to start automatically.
 - `foundry_language`: default language. Default `en.core`.
 - `foundry_css_theme`: `dark`, `fantasy`, or `scifi`.
@@ -96,7 +103,8 @@ restart or reboot should not download it again.
 
 If it downloads every time, check:
 
-- foundry_version is left empty, or is set to the same version every time.
+- foundry_version is left empty (with foundry_auto_update off), or is set
+  to the same version every time.
 - container_cache_size is at least 1.
 - The Log tab, right after "Starting Foundry VTT", for a
   "Found cached Foundry" message. If you see it, the cache worked.
