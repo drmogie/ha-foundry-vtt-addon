@@ -169,3 +169,37 @@ Open risks to check on first real run:
   history has always used plain tags (2026.09.26.01 through .06,
   2026.09.27.01-.03), the prefix convention was only introduced for
   ddb_scraper_proxy to disambiguate it from those.
+
+## 2026-09-29: foundry_auto_update option (2026.09.29.02)
+
+- Mogie asked for a way to stop Foundry from auto-updating on restart.
+  Root cause: our Dockerfile builds from `ghcr.io/felddy/foundryvtt:14`,
+  a floating major-version tag -- felddy publishes new Foundry builds
+  under the same tag over time. `foundry_version` defaults to empty, so
+  the version actually installed is whatever the base image happens to
+  bundle at build time. Every time the add-on's own image gets
+  rebuilt/re-pulled (an add-on update), that bundled default can shift,
+  and `run.sh`'s cache-skip logic is keyed on an exact string match
+  against `FOUNDRY_VERSION`, so a shifted default forces a fresh
+  download+install of the new version -- an implicit, easy-to-miss
+  auto-update.
+- Added `foundry_auto_update` (bool, default `false`) rather than
+  changing what an empty `foundry_version` means, so an explicit
+  `foundry_version` still always wins and existing installs that already
+  pin a version see no behavior change.
+- When off and no explicit `foundry_version` is set, `run.sh` now detects
+  the currently-installed version and pins `FOUNDRY_VERSION` to it before
+  the existing cache-skip check runs: first from the persisted app
+  cache's `${APP_CACHE}/app/package.json` (`.version` field via `jq`,
+  most reliable since it's the actual installed app), falling back to
+  the newest `foundryvtt-*.zip` under the container cache dir (sorted
+  with `sort -V`) if the app cache isn't populated yet. If neither
+  exists (first-ever install), there's nothing to pin to, so it installs
+  whatever version the image bundles and logs that plainly.
+- Default is `false` (auto-update off) rather than `true`/matching prior
+  implicit behavior, since "off" is what Mogie asked for and is
+  non-breaking either way: on an existing install it just pins to
+  whatever is already running, it never forces a downgrade or a
+  surprise reinstall.
+- Documented in `foundry_vtt/DOCS.md` under Server options and in the
+  "Restarts are fast" troubleshooting section.
