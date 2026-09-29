@@ -8,3 +8,5 @@ Run your own Foundry Virtual Tabletop server inside Home Assistant.
 - Worlds, modules and settings are kept in the add-on data folder.
 
 See the Documentation tab for setup steps and every option.
+
+Icon and logo are Foundry Virtual Tabletop's own d20 mark, from [homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons).

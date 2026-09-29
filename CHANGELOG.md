@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.01
+
+- Adds an icon and logo to the Add-on Store listing: Foundry Virtual Tabletop's own d20 mark (via homarr-labs/dashboard-icons).
+
 ## 2026.09.27.03
 
 - Added the DDB Scraper Proxy add-on (`ddb_scraper_proxy`) to this repository -- a companion proxy for the `ddb-live-importer` Foundry module. See ddb_scraper_proxy/CHANGELOG.md for its own version history.
