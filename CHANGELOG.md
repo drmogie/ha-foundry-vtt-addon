@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.06
+
+- Foundry VTT MCP & Rest Relay 2026.09.29.12: casts skip the click-to-place spell area unless asked.
+
 ## 2026.09.29.05
 
 - Foundry VTT MCP & Rest Relay 2026.09.29.11: the use item route takes clearArea to remove the spell area a cast leaves on the board.

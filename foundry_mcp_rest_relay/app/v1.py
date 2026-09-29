@@ -54,6 +54,7 @@ class UseItemBody(BaseModel):
     targets: list[str] | None = None
     activityId: str | None = None
     clearArea: bool = False
+    template: bool = False
 
 
 class MoveBody(BaseModel):

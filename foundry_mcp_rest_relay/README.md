@@ -1,6 +1,6 @@
 # Foundry VTT MCP & Rest Relay
 
-Version: 2026.09.29.11
+Version: 2026.09.29.12
 
 Our own relay between Foundry VTT and tools like Claude.
 It is the REST API. The MCP server sits on top of it.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.12
+
+- The use item route takes template. Off by default, so a cast no longer waits for someone to click the board.
+
 ## 2026.09.29.11
 
 - The use item route takes clearArea, which removes the spell area a cast leaves on the board.
