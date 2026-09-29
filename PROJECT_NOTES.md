@@ -149,3 +149,23 @@ Open risks to check on first real run:
 - Mogie removed the standalone `drmogie/ddb-scraper-proxy` GitHub repo --
   this add-on's copy here is now the only maintained one, no more
   by-hand syncing between two repos.
+
+## 2026-09-29: foundry_vtt gets an icon and logo (2026.09.29.01)
+
+- Mogie asked for "the d20 icon of vtt" on the add-on's Store listing.
+  Foundry VTT itself has no public asset repo, so pulled its official
+  d20-and-anvil mark from `homarr-labs/dashboard-icons` on GitHub
+  (`raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/foundry-vtt.png`,
+  448x512, clean transparent background) rather than felddy/foundryvtt-docker's
+  own `assets/logo.png`, which turned out to be a fan-made mashup (the
+  same d20 combined with the Docker whale + an anvil), not Foundry's
+  actual brand mark.
+- Resized with Pillow into `icon.png` (128x128, padded to square first)
+  and `logo.png` (250x100 landscape, fit-and-centered) -- both transparent
+  background, matching the icon/logo convention set on `network-services`.
+- Credited the source in foundry_vtt/README.md.
+- Used the add-on's own plain `YYYY.MM.DD.##` tag (`2026.09.29.01`), not
+  the `ddb_scraper_proxy-` style prefix -- foundry_vtt's own release
+  history has always used plain tags (2026.09.26.01 through .06,
+  2026.09.27.01-.03), the prefix convention was only introduced for
+  ddb_scraper_proxy to disambiguate it from those.
