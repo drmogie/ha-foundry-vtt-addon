@@ -19,7 +19,7 @@ stack on Home Assistant.
 - **Foundry VTT MCP & Rest Relay** (`foundry_mcp_rest_relay`): a REST API and
   MCP relay between Foundry VTT and tools like Claude. One login, API tokens,
   a list of recent changes, and many Foundry servers on one relay (one card and
-  one connect key each). Pairs with the FGA Relay Connect module and the
+  one connect key each). Pairs with the VTT MCP Rest Connector module and the
   MCP server in [drmogie/foundry-mcp](https://github.com/drmogie/foundry-mcp).
   The image is built by GitHub Actions. After the first build, set the package
   `aarch64-addon-foundry-mcp-rest-relay` and `amd64-addon-foundry-mcp-rest-relay`

@@ -8,6 +8,7 @@
 - The old key becomes a connection called Main on first start. Nothing to redo in Foundry.
 - New routes: GET and POST /api/connections, PATCH and DELETE /api/connections/{id}, POST /api/connections/{id}/regenerate. The old /api/connect routes act on the first connection.
 - Client lists now say which connection each Foundry came in on.
+- The Foundry module is now called VTT MCP Rest Connector (was FGA Relay Connect). Its id is unchanged.
 
 ## 2026.09.29.13
 

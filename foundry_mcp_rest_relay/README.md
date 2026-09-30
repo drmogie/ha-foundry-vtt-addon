@@ -114,9 +114,9 @@ Tokens are stored as a hash in /data/tokens.db, so nobody can read one back, not
 Test on ha-pi4 first. It runs on port 3011, so it can sit next to the old relay on 3010.
 
 ## Connect Foundry
-- Install the FGA Relay Connect module from https://github.com/drmogie/foundry-mcp (folder `foundry-module/fga-relay-connect`, copy it into Foundry `Data/modules`).
+- Install the VTT MCP Rest Connector module from https://github.com/drmogie/foundry-mcp (folder `foundry-module/fga-relay-connect`, copy it into Foundry `Data/modules`).
 - Turn the module on in your world.
-- Open Game Settings, Configure Settings, FGA Relay Connect.
+- Open Game Settings, Configure Settings, VTT MCP Rest Connector.
 - Paste the relay address and the connect key from that server's card on the relay page. Each Foundry server uses its own card.
 - Turn on "Connect this browser to the relay".
 - The status light on the relay page turns green.
