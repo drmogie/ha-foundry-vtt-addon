@@ -531,3 +531,11 @@ def test_use_item_body_has_clear_area():
     from app.v1 import UseItemBody
     assert UseItemBody(uuid="Item.i1").model_dump()["clearArea"] is False
     assert UseItemBody(uuid="Item.i1", clearArea=True).model_dump()["clearArea"] is True
+
+
+def test_use_item_body_has_advantage_and_disadvantage():
+    from app.v1 import UseItemBody
+    dumped = UseItemBody(uuid="Item.i1").model_dump()
+    assert dumped["advantage"] is False and dumped["disadvantage"] is False
+    assert UseItemBody(uuid="Item.i1", advantage=True).model_dump()["advantage"] is True
+    assert UseItemBody(uuid="Item.i1", disadvantage=True).model_dump()["disadvantage"] is True

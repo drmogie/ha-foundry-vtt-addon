@@ -55,6 +55,8 @@ class UseItemBody(BaseModel):
     activityId: str | None = None
     clearArea: bool = False
     template: bool = False
+    advantage: bool = False
+    disadvantage: bool = False
 
 
 class MoveBody(BaseModel):

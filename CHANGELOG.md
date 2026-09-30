@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.07
+
+- Foundry VTT MCP & Rest Relay 2026.09.29.13: the use item route takes advantage and disadvantage.
+
 ## 2026.09.29.06
 
 - Foundry VTT MCP & Rest Relay 2026.09.29.12: casts skip the click-to-place spell area unless asked.

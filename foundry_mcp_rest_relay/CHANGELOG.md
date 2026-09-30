@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.13
+
+- The use item route takes advantage and disadvantage for the attack roll. Needs FGA Relay Connect 2026.09.29.14.
+
 ## 2026.09.29.12
 
 - The use item route takes template. Off by default, so a cast no longer waits for someone to click the board.
