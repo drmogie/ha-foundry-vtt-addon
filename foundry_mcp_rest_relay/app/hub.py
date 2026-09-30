@@ -24,12 +24,16 @@ class Client:
     client_id: str
     ws: WebSocket
     info: dict[str, Any]
+    connection_id: str = ""
+    connection_name: str = ""
     connected_at: float = field(default_factory=time.time)
     last_seen: float = field(default_factory=time.time)
 
     def public(self) -> dict[str, Any]:
         return {
             "clientId": self.client_id,
+            "connectionId": self.connection_id,
+            "connection": self.connection_name,
             "worldId": self.info.get("worldId"),
             "worldTitle": self.info.get("worldTitle"),
             "foundryVersion": self.info.get("foundryVersion"),
@@ -59,18 +63,21 @@ class Hub:
         if self.clients.get(client.client_id) is client:
             del self.clients[client.client_id]
 
-    def pick(self, client_id: str | None) -> Client:
+    def pick(self, client_id: str | None, connection_id: str | None = None) -> Client:
         if client_id:
             if client_id not in self.clients:
                 raise HubError(f"No Foundry client called {client_id} is connected.")
             return self.clients[client_id]
-        if not self.clients:
+        pool = [c for c in self.clients.values() if not connection_id or c.connection_id == connection_id]
+        if not pool:
             raise HubError(
-                "No Foundry client is connected. Open Foundry in a browser, log in, and check the module settings."
+                "No Foundry client is connected"
+                + (" on that connection" if connection_id else "")
+                + ". Open Foundry in a browser, log in, and check the module settings."
             )
-        if len(self.clients) > 1:
+        if len(pool) > 1:
             raise HubError("More than one Foundry client is connected. Say which one with client_id.")
-        return next(iter(self.clients.values()))
+        return pool[0]
 
     def resolve(self, message: dict[str, Any]) -> None:
         fut = self._pending.pop(message.get("id"), None)
@@ -94,9 +101,10 @@ class Hub:
             raise FoundryError(str(reply.get("error") or "Foundry reported an error."))
         return reply.get("data")
 
-    async def close_all(self, code: int, reason: str) -> None:
+    async def close_all(self, code: int, reason: str, connection_id: str | None = None) -> None:
         for client in list(self.clients.values()):
-            await _close_quietly(client.ws, code, reason)
+            if connection_id is None or client.connection_id == connection_id:
+                await _close_quietly(client.ws, code, reason)
 
 
 async def _close_quietly(ws: WebSocket, code: int, reason: str) -> None:

@@ -1,6 +1,6 @@
 # Foundry VTT MCP & Rest Relay
 
-Version: 2026.09.29.13
+Version: 2026.09.29.14
 
 Our own relay between Foundry VTT and tools like Claude.
 It is the REST API. The MCP server sits on top of it.
@@ -8,10 +8,10 @@ It is the REST API. The MCP server sits on top of it.
 ## What this version does
 - One login page. No sign-up screen.
 - Username and password come from the add-on options.
-- Status lights: relay, Foundry client, world.
-- Copy boxes for the relay address and the connect key.
-- A "Test the link" button that shows the round trip time.
-- Make a new connect key at any time.
+- Many Foundry servers. Each one gets its own card with a name, the relay address and its own connect key. Add, rename, make a new key for, or remove each one on its own. A new card opens by itself.
+- One status line at the top for everything. Press it to open the detail for the relay and each server.
+- A "Test the link" button on each card, and "Test all links" in the status detail.
+- The first key you already had becomes the connection called Main, so Foundry keeps working after the update.
 - API tokens: read only or read and write, limited to one world if you like, with an optional expiry. Each token shows once. The page lists them with last used time and a Revoke button.
 
 ## API tokens

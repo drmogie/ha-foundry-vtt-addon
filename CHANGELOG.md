@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.29.08
+
+- Foundry VTT MCP & Rest Relay 2026.09.29.14: many Foundry servers, each with its own name, address and connect key. One collapsible status line.
+
 ## 2026.09.29.07
 
 - Foundry VTT MCP & Rest Relay 2026.09.29.13: the use item route takes advantage and disadvantage.

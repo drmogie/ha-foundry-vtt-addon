@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import hmac
 import logging
 import time
 from pathlib import Path
@@ -17,7 +16,8 @@ from pydantic import BaseModel
 from . import __version__, auth
 from .hub import Client, Hub, HubError
 from .v1 import register_v1
-from .settings import Settings, load_connect_key, new_connect_key, session_secret
+from .settings import Settings, session_secret
+from .connections import ConnectionError_, ConnectionStore
 from .activity import ActivityLog
 from .tokens import Token, TokenError, TokenStore
 
@@ -29,6 +29,10 @@ HELLO_TIMEOUT = 10.0
 class LoginBody(BaseModel):
     username: str = ""
     password: str = ""
+
+
+class ConnectionBody(BaseModel):
+    name: str = ""
 
 
 class TokenBody(BaseModel):
@@ -53,7 +57,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     secret = session_secret(settings)
     hub = Hub()
     limiter = auth.LoginLimiter()
-    state: dict[str, Any] = {"connect_key": load_connect_key(settings)}
+    connections = ConnectionStore(settings)
 
     tokens = TokenStore(settings.data_dir / "tokens.db")
     activity = ActivityLog(settings.data_dir / "activity.db")
@@ -61,6 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.hub = hub
     app.state.tokens = tokens
+    app.state.connections = connections
 
     def who(request: Request) -> str:
         return request.client.host if request.client else "unknown"
@@ -153,33 +158,103 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.delete_cookie(auth.COOKIE)
         return {"ok": True}
 
+    def connection_card(conn, request: Request, now: float) -> dict[str, Any]:
+        mine = [c.public() for c in hub.clients.values() if c.connection_id == conn.id]
+        return {
+            "id": conn.id,
+            "name": conn.name,
+            "key": conn.key,
+            "url": ws_url(request),
+            "clients": mine,
+            "createdAt": conn.created_at,
+        }
+
     @app.get("/api/status")
     async def status(request: Request) -> dict[str, Any]:
         require_user(request)
+        now = time.time()
         return {
             "version": __version__,
             "relay": "up",
             "clients": [c.public() for c in hub.clients.values()],
-            "now": time.time(),
+            "connections": [connection_card(c, request, now) for c in connections.items],
+            "now": now,
         }
+
+    # ----- connections: one per Foundry server -----
+
+    @app.get("/api/connections")
+    async def list_connections(request: Request) -> dict[str, Any]:
+        require_user(request)
+        now = time.time()
+        return {"connections": [connection_card(c, request, now) for c in connections.items]}
+
+    @app.post("/api/connections")
+    async def add_connection(body: ConnectionBody, request: Request) -> dict[str, Any]:
+        require_user(request)
+        try:
+            conn = connections.add(body.name)
+        except ConnectionError_ as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return connection_card(conn, request, time.time())
+
+    @app.patch("/api/connections/{conn_id}")
+    async def rename_connection(conn_id: str, body: ConnectionBody, request: Request) -> dict[str, Any]:
+        require_user(request)
+        try:
+            conn = connections.rename(conn_id, body.name)
+        except ConnectionError_ as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        for client in hub.clients.values():
+            if client.connection_id == conn.id:
+                client.connection_name = conn.name
+        return connection_card(conn, request, time.time())
+
+    @app.post("/api/connections/{conn_id}/regenerate")
+    async def regenerate_connection(conn_id: str, request: Request) -> dict[str, Any]:
+        require_user(request)
+        try:
+            conn = connections.regenerate(conn_id)
+        except ConnectionError_ as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        await hub.close_all(4401, "The connect key was replaced", conn.id)
+        return connection_card(conn, request, time.time())
+
+    @app.delete("/api/connections/{conn_id}")
+    async def remove_connection(conn_id: str, request: Request) -> dict[str, Any]:
+        require_user(request)
+        try:
+            conn = connections.remove(conn_id)
+        except ConnectionError_ as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        await hub.close_all(4401, "This connection was removed", conn.id)
+        return {"ok": True}
+
+    # The one-connection routes still work. They act on the first connection.
 
     @app.get("/api/connect")
     async def connect_info(request: Request) -> dict[str, Any]:
         require_user(request)
-        return {"key": state["connect_key"], "url": ws_url(request)}
+        conn = connections.first()
+        if conn is None:
+            raise HTTPException(status_code=404, detail="There are no connections. Add one first.")
+        return {"key": conn.key, "url": ws_url(request)}
 
     @app.post("/api/connect/regenerate")
     async def regenerate(request: Request) -> dict[str, Any]:
         require_user(request)
-        state["connect_key"] = new_connect_key(settings)
-        await hub.close_all(4401, "The connect key was replaced")
-        return {"key": state["connect_key"], "url": ws_url(request)}
+        first = connections.first()
+        if first is None:
+            raise HTTPException(status_code=404, detail="There are no connections. Add one first.")
+        conn = connections.regenerate(first.id)
+        await hub.close_all(4401, "The connect key was replaced", conn.id)
+        return {"key": conn.key, "url": ws_url(request)}
 
     @app.post("/api/ping")
-    async def ping(request: Request, client_id: str | None = None) -> dict[str, Any]:
+    async def ping(request: Request, client_id: str | None = None, connection_id: str | None = None) -> dict[str, Any]:
         require_user(request)
         try:
-            client = hub.pick(client_id)
+            client = hub.pick(client_id, connection_id)
             started = time.perf_counter()
             reply = await hub.request(client, "ping")
         except HubError as exc:
@@ -251,7 +326,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.websocket("/ws/module")
     async def module_socket(ws: WebSocket) -> None:
         offered = ws.query_params.get("key", "")
-        if not hmac.compare_digest(offered.encode(), state["connect_key"].encode()):
+        conn = connections.match_key(offered)
+        if conn is None:
             await ws.accept()
             await ws.close(code=4401, reason="Wrong connect key. Copy it again from the relay page.")
             return
@@ -264,7 +340,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if hello.get("type") != "hello" or not hello.get("clientId"):
             await ws.close(code=4400, reason="Expected a hello message with a clientId")
             return
-        client = Client(client_id=str(hello["clientId"]), ws=ws, info=hello)
+        client = Client(client_id=str(hello["clientId"]), ws=ws, info=hello, connection_id=conn.id, connection_name=conn.name)
         hub.add(client)
         log.info("Foundry client %s connected (world %s)", client.client_id, hello.get("worldId"))
         await ws.send_json({"type": "welcome", "relayVersion": __version__})

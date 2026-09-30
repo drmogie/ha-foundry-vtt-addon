@@ -121,3 +121,98 @@ def test_session_cookie_helpers():
     assert auth.read_session("s3", cookie, now=1000 + auth.SESSION_SECONDS + 1) is None
     assert auth.read_session("s3", "junk") is None
     assert auth.read_session("s3", None) is None
+
+
+# ----- many Foundry servers -----
+
+
+def test_first_run_turns_old_key_into_main_connection(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    old = client.get("/api/connect").json()["key"]
+    conns = client.get("/api/connections").json()["connections"]
+    assert [c["name"] for c in conns] == ["Main"]
+    assert conns[0]["key"] == old
+
+
+def test_connections_need_login(tmp_path):
+    client, _ = make(tmp_path)
+    assert client.get("/api/connections").status_code == 401
+    assert client.post("/api/connections", json={"name": "x"}).status_code == 401
+
+
+def test_add_rename_regenerate_remove(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    made = client.post("/api/connections", json={"name": "Second server"}).json()
+    assert made["key"].startswith("fga_") and made["url"].startswith("ws")
+    assert client.post("/api/connections", json={"name": "second SERVER"}).status_code == 400  # same name
+    assert client.post("/api/connections", json={"name": "  "}).status_code == 400
+    renamed = client.patch(f"/api/connections/{made['id']}", json={"name": "Game night"}).json()
+    assert renamed["name"] == "Game night"
+    fresh = client.post(f"/api/connections/{made['id']}/regenerate").json()
+    assert fresh["key"] != made["key"]
+    assert client.delete(f"/api/connections/{made['id']}").status_code == 200
+    assert client.delete(f"/api/connections/{made['id']}").status_code == 404
+    assert [c["name"] for c in client.get("/api/connections").json()["connections"]] == ["Main"]
+
+
+def test_connections_survive_restart(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    made = client.post("/api/connections", json={"name": "Second"}).json()
+    again, _ = make(tmp_path)
+    login(again)
+    keys = {c["name"]: c["key"] for c in again.get("/api/connections").json()["connections"]}
+    assert keys["Second"] == made["key"]
+
+
+def test_each_key_only_opens_its_own_connection(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    main = client.get("/api/connections").json()["connections"][0]
+    other = client.post("/api/connections", json={"name": "Other"}).json()
+    with client.websocket_connect(f"/ws/module?key={main['key']}") as a, client.websocket_connect(f"/ws/module?key={other['key']}") as b:
+        a.send_json({"type": "hello", "clientId": "one", "worldId": "w1", "worldTitle": "World One"})
+        b.send_json({"type": "hello", "clientId": "two", "worldId": "w2", "worldTitle": "World Two"})
+        assert a.receive_json()["type"] == "welcome"
+        assert b.receive_json()["type"] == "welcome"
+        cards = {c["name"]: c for c in client.get("/api/status").json()["connections"]}
+        assert [x["clientId"] for x in cards["Main"]["clients"]] == ["one"]
+        assert [x["clientId"] for x in cards["Other"]["clients"]] == ["two"]
+        assert {c["connection"] for c in client.get("/api/status").json()["clients"]} == {"Main", "Other"}
+
+
+def test_new_key_only_drops_that_connection(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    main = client.get("/api/connections").json()["connections"][0]
+    other = client.post("/api/connections", json={"name": "Other"}).json()
+    with client.websocket_connect(f"/ws/module?key={main['key']}") as a, client.websocket_connect(f"/ws/module?key={other['key']}") as b:
+        a.send_json({"type": "hello", "clientId": "one"})
+        b.send_json({"type": "hello", "clientId": "two"})
+        a.receive_json(); b.receive_json()
+        client.post(f"/api/connections/{other['id']}/regenerate")
+        with pytest.raises(WebSocketDisconnect) as info:
+            b.receive_json()
+        assert info.value.code == 4401
+        a.send_json({"type": "heartbeat"})
+        assert a.receive_json()["type"] == "heartbeat"  # the other server is untouched
+
+
+def test_removed_connection_key_stops_working(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    other = client.post("/api/connections", json={"name": "Other"}).json()
+    client.delete(f"/api/connections/{other['id']}")
+    with client.websocket_connect(f"/ws/module?key={other['key']}") as ws:
+        with pytest.raises(WebSocketDisconnect) as info:
+            ws.receive_json()
+    assert info.value.code == 4401
+
+
+def test_ping_can_target_one_connection(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    r = client.post("/api/ping?connection_id=nope")
+    assert r.status_code == 502 and "on that connection" in r.json()["detail"]

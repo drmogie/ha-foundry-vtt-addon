@@ -43,6 +43,23 @@
   select { font-family: inherit; }
   .hidden { display: none !important; }
   header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .summary { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: none; border: 0; padding: 0; }
+  .summary .grow { flex: 1; font-weight: 600; }
+  .chev { transition: transform .15s; flex: none; }
+  [aria-expanded="true"] > .chev { transform: rotate(90deg); }
+  #statusBody { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .sect-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+  .sect-head h2 { margin: 0; }
+  details.conn { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-top: 12px; }
+  details.conn > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 16px 18px; cursor: pointer; min-height: 48px; }
+  details.conn > summary::-webkit-details-marker { display: none; }
+  details.conn > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+  details.conn[open] > summary .chev { transform: rotate(90deg); }
+  details.conn .name { font-weight: 700; }
+  details.conn .body { padding: 0 18px 18px; }
+  details.conn .sub { display: block; }
+  .danger { color: var(--bad); }
+  .addform { margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -76,26 +93,35 @@
   </section>
 
   <div id="app" class="hidden">
-    <section class="card">
-      <h2>Status</h2>
-      <div class="light"><span class="dot ok" id="dRelay"></span><div><b>Relay</b><span class="muted" id="tRelay">Running</span></div></div>
-      <div class="light"><span class="dot wait" id="dClient"></span><div><b>Foundry client</b><span class="muted" id="tClient">Waiting</span></div></div>
-      <div class="light"><span class="dot wait" id="dWorld"></span><div><b>World</b><span class="muted" id="tWorld">Waiting</span></div></div>
-      <div class="actions"><button id="ping">Test the link</button></div>
-      <div class="msg" id="pingMsg" role="status"></div>
+    <section class="card" id="statusCard">
+      <button class="summary" id="statusToggle" type="button" aria-expanded="false" aria-controls="statusBody">
+        <span class="dot wait" id="dAll"></span>
+        <span class="grow" id="tAll">Checking...</span>
+        <span class="chev" aria-hidden="true">&#9656;</span>
+      </button>
+      <div id="statusBody" class="hidden">
+        <div class="light"><span class="dot ok" id="dRelay"></span><div><b>Relay</b><span class="muted" id="tRelay">Running</span></div></div>
+        <div id="statusRows"></div>
+        <div class="actions"><button id="ping">Test all links</button></div>
+        <div class="msg" id="pingMsg" role="status"></div>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Connect Foundry</h2>
-      <p>Copy these two boxes into the FGA Relay Connect module settings in Foundry.</p>
-      <label for="url">Relay address</label>
-      <div class="row"><input id="url" readonly><button data-copy="url">Copy</button></div>
-      <label for="key">Connect key</label>
-      <div class="row"><input id="key" readonly><button data-copy="key">Copy</button></div>
-      <div class="msg" id="copyMsg" role="status"></div>
-      <div class="actions"><button id="regen">Make a new key</button></div>
-      <p class="muted" style="margin-top:12px">A new key disconnects Foundry until you paste the new one.</p>
-    </section>
+    <div class="sect-head">
+      <h2>Foundry servers</h2>
+      <button id="addBtn" class="primary" type="button">Add connection</button>
+    </div>
+    <p class="muted" style="margin-top:8px">Each Foundry server gets its own card. Copy its two boxes into the FGA Relay Connect module settings on that server.</p>
+    <form id="addForm" class="card addform hidden">
+      <label for="addName">Name of the new connection</label>
+      <input id="addName" maxlength="40" placeholder="For example: Main server" required>
+      <div class="actions">
+        <button class="primary" type="submit">Add</button>
+        <button id="addCancel" type="button">Cancel</button>
+      </div>
+      <div class="msg" id="addMsg" role="alert"></div>
+    </form>
+    <div id="connList"></div>
 
     <section class="card">
       <h2>API tokens</h2>
@@ -162,53 +188,198 @@ function show(which) {
   $("logout").classList.toggle("hidden", which !== "app");
 }
 
-function light(dotId, textId, state, text) {
-  $(dotId).className = "dot " + state;
-  $(textId).textContent = text;
-}
-
 function ago(seconds) {
   if (seconds < 5) return "just now";
   if (seconds < 90) return Math.round(seconds) + " seconds ago";
   return Math.round(seconds / 60) + " minutes ago";
 }
 
-async function refresh() {
-  try {
-    const s = await api("/api/status");
-    light("dRelay", "tRelay", "ok", "Running");
-    const clients = s.clients;
-    fillWorlds(clients);
-    if (!clients.length) {
-      light("dClient", "tClient", "wait", "None connected. Open Foundry and check the module settings.");
-      light("dWorld", "tWorld", "wait", "Waiting for a client");
-      $("clients").textContent = "None yet.";
-    } else {
-      light("dClient", "tClient", "ok", clients.length + " connected");
-      const c = clients[0];
-      light("dWorld", "tWorld", "ok", (c.worldTitle || c.worldId || "Unknown") + (c.foundryVersion ? " on Foundry " + c.foundryVersion : ""));
-      const box = $("clients");
-      box.textContent = "";
-      for (const cl of clients) {
-        const d = document.createElement("div");
-        d.className = "light";
-        const dot = document.createElement("span"); dot.className = "dot ok";
-        const wrap = document.createElement("div");
-        const b = document.createElement("b"); b.textContent = cl.worldTitle || cl.worldId || cl.clientId;
-        const m = document.createElement("span"); m.className = "muted";
-        m.textContent = [cl.userName, cl.systemId && (cl.systemId + " " + (cl.systemVersion || "")), "seen " + ago(s.now - cl.lastSeen)].filter(Boolean).join(", ");
-        wrap.append(b, m); d.append(dot, wrap); box.append(d);
-      }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function worldText(c) {
+  return (c.worldTitle || c.worldId || "Unknown world") + (c.foundryVersion ? " on Foundry " + c.foundryVersion : "");
+}
+
+function connState(conn) {
+  if (!conn.clients.length) return { dot: "wait", text: "Waiting for Foundry" };
+  const first = conn.clients[0];
+  const extra = conn.clients.length > 1 ? " (" + conn.clients.length + " clients)" : "";
+  return { dot: "ok", text: worldText(first) + extra };
+}
+
+let currentConns = [];
+const cards = new Map();
+let firstDraw = true;
+let openNext = null;
+
+function copyFrom(input, msg) {
+  return async () => {
+    try { await navigator.clipboard.writeText(input.value); msg.className = "msg ok"; msg.textContent = "Copied."; }
+    catch (e) { input.select(); msg.className = "msg"; msg.textContent = "Press Ctrl+C to copy the selected text."; }
+  };
+}
+
+function makeCard(conn) {
+  const d = document.createElement("details");
+  d.className = "conn";
+  const sum = document.createElement("summary");
+  const dot = el("span", "dot wait");
+  const wrap = el("div"); wrap.style.flex = "1";
+  const name = el("span", "name"); const sub = el("span", "muted sub");
+  wrap.append(name, sub);
+  sum.append(dot, wrap, el("span", "chev", "\u25B8"));
+  const body = el("div", "body");
+
+  const nameLabel = el("label", "", "Name"); nameLabel.htmlFor = "n-" + conn.id;
+  const nameInput = el("input"); nameInput.id = "n-" + conn.id; nameInput.maxLength = 40;
+  const nameRow = el("div", "row"); const saveName = el("button", "", "Save name"); saveName.type = "button";
+  nameRow.append(nameInput, saveName);
+  nameInput.style.fontFamily = "inherit"; nameInput.style.fontSize = "1rem";
+
+  const urlLabel = el("label", "", "Relay address"); urlLabel.htmlFor = "u-" + conn.id;
+  const url = el("input"); url.id = "u-" + conn.id; url.readOnly = true;
+  const urlCopy = el("button", "", "Copy"); urlCopy.type = "button";
+  const urlRow = el("div", "row"); urlRow.append(url, urlCopy);
+
+  const keyLabel = el("label", "", "Connect key"); keyLabel.htmlFor = "k-" + conn.id;
+  const key = el("input"); key.id = "k-" + conn.id; key.readOnly = true;
+  const keyCopy = el("button", "", "Copy"); keyCopy.type = "button";
+  const keyRow = el("div", "row"); keyRow.append(key, keyCopy);
+
+  const msg = el("div", "msg"); msg.setAttribute("role", "status");
+  const actions = el("div", "actions");
+  const test = el("button", "", "Test the link"); test.type = "button";
+  const regen = el("button", "", "Make a new key"); regen.type = "button";
+  const remove = el("button", "danger", "Remove"); remove.type = "button";
+  actions.append(test, regen, remove);
+  const note = el("p", "muted", "A new key disconnects this Foundry server until you paste the new one.");
+  note.style.marginTop = "12px";
+  body.append(nameLabel, nameRow, urlLabel, urlRow, keyLabel, keyRow, msg, actions, note);
+  d.append(sum, body);
+
+  const card = { id: conn.id, d, dot, name, sub, nameInput, url, key, msg, conn };
+  urlCopy.addEventListener("click", copyFrom(url, msg));
+  keyCopy.addEventListener("click", copyFrom(key, msg));
+  saveName.addEventListener("click", async () => {
+    try {
+      await api("/api/connections/" + card.id, { method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nameInput.value }) });
+      msg.className = "msg ok"; msg.textContent = "Name saved."; refresh();
+    } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
+  });
+  test.addEventListener("click", async () => {
+    msg.className = "msg"; msg.textContent = "Testing...";
+    try {
+      const r = await api("/api/ping?connection_id=" + encodeURIComponent(card.id), { method: "POST" });
+      msg.className = "msg ok"; msg.textContent = "Linked. Foundry answered in " + r.ms + " ms.";
+    } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
+  });
+  regen.addEventListener("click", async () => {
+    if (!confirm("Make a new key for " + card.conn.name + "? That Foundry server will disconnect until you paste it in.")) return;
+    try {
+      await api("/api/connections/" + card.id + "/regenerate", { method: "POST" });
+      msg.className = "msg ok"; msg.textContent = "New key made. Paste it into Foundry."; refresh();
+    } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
+  });
+  remove.addEventListener("click", async () => {
+    if (!confirm("Remove " + card.conn.name + "? That Foundry server disconnects and its key stops working.")) return;
+    try { await api("/api/connections/" + card.id, { method: "DELETE" }); refresh(); }
+    catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
+  });
+  return card;
+}
+
+function drawConnections(conns) {
+  currentConns = conns;
+  const list = $("connList");
+  const ids = new Set(conns.map((c) => c.id));
+  for (const [id, card] of cards) if (!ids.has(id)) { card.d.remove(); cards.delete(id); }
+  if (!conns.length && !list.querySelector(".empty")) {
+    list.append(el("p", "muted empty", "No connections yet. Press Add connection."));
+  }
+  if (conns.length) list.querySelectorAll(".empty").forEach((n) => n.remove());
+  for (const conn of conns) {
+    let card = cards.get(conn.id);
+    if (!card) {
+      card = makeCard(conn);
+      cards.set(conn.id, card);
+      list.append(card.d);
+      card.nameInput.value = conn.name;
+      if (openNext === conn.id || (firstDraw && conns.length === 1)) card.d.open = true;
+      if (openNext === conn.id) { card.d.scrollIntoView({ block: "nearest" }); openNext = null; }
     }
-  } catch (e) {
-    if (e.status === 401) { start(); return; }
-    light("dRelay", "tRelay", "bad", "Cannot reach the relay. " + e.message);
+    card.conn = conn;
+    const st = connState(conn);
+    card.dot.className = "dot " + st.dot;
+    card.name.textContent = conn.name;
+    card.sub.textContent = st.text;
+    if (document.activeElement !== card.nameInput && card.nameInput.dataset.last !== conn.name) {
+      card.nameInput.value = conn.name; card.nameInput.dataset.last = conn.name;
+    }
+    if (card.url.value !== conn.url) card.url.value = conn.url;
+    if (card.key.value !== conn.key) card.key.value = conn.key;
+  }
+  // keep the cards in the order the relay lists them
+  for (const conn of conns) list.append(cards.get(conn.id).d);
+  firstDraw = false;
+}
+
+function drawStatus(s) {
+  const conns = s.connections;
+  const up = conns.filter((c) => c.clients.length).length;
+  let dot, text;
+  if (!conns.length) { dot = "wait"; text = "Relay running. No connections yet."; }
+  else if (up === conns.length) { dot = "ok"; text = "Relay running. " + (conns.length === 1 ? "Foundry connected." : "All " + conns.length + " Foundry servers connected."); }
+  else if (up === 0) { dot = "wait"; text = "Relay running. No Foundry connected yet."; }
+  else { dot = "wait"; text = "Relay running. " + up + " of " + conns.length + " Foundry servers connected."; }
+  $("dAll").className = "dot " + dot;
+  $("tAll").textContent = text;
+  $("tRelay").textContent = "Running" + (s.version ? ", version " + s.version : "");
+  const rows = $("statusRows");
+  rows.textContent = "";
+  for (const conn of conns) {
+    const st = connState(conn);
+    const row = el("div", "light");
+    const wrap = el("div"); wrap.append(el("b", "", conn.name), el("span", "muted", st.text));
+    row.append(el("span", "dot " + st.dot), wrap);
+    rows.append(row);
   }
 }
 
-async function loadConnect() {
-  const c = await api("/api/connect");
-  $("url").value = c.url; $("key").value = c.key;
+function drawClients(s) {
+  const clients = s.clients;
+  fillWorlds(clients);
+  const box = $("clients");
+  if (!clients.length) { box.textContent = "None yet."; return; }
+  box.textContent = "";
+  for (const cl of clients) {
+    const d = el("div", "light");
+    const wrap = el("div");
+    const b = el("b", "", cl.worldTitle || cl.worldId || cl.clientId);
+    const m = el("span", "muted", [cl.connection, cl.userName, cl.systemId && (cl.systemId + " " + (cl.systemVersion || "")), "seen " + ago(s.now - cl.lastSeen)].filter(Boolean).join(", "));
+    wrap.append(b, m); d.append(el("span", "dot ok"), wrap); box.append(d);
+  }
+}
+
+async function refresh() {
+  try {
+    const s = await api("/api/status");
+    $("dRelay").className = "dot ok";
+    drawStatus(s);
+    drawConnections(s.connections);
+    drawClients(s);
+  } catch (e) {
+    if (e.status === 401) { start(); return; }
+    $("dAll").className = "dot bad";
+    $("tAll").textContent = "Cannot reach the relay. " + e.message;
+    $("dRelay").className = "dot bad";
+    $("tRelay").textContent = "Cannot reach the relay. " + e.message;
+  }
 }
 
 
@@ -316,7 +487,7 @@ async function start() {
   if (!s.configured) return show("setup");
   if (!s.loggedIn) return show("login");
   show("app");
-  await loadConnect();
+  firstDraw = true; cards.forEach((c) => c.d.remove()); cards.clear();
   await refresh();
   await loadTokens();
   await loadActivity();
@@ -336,27 +507,42 @@ $("loginForm").addEventListener("submit", async (ev) => {
 
 $("logout").addEventListener("click", async () => { await api("/api/logout", { method: "POST" }); start(); });
 
+$("statusToggle").addEventListener("click", () => {
+  const open = $("statusToggle").getAttribute("aria-expanded") === "true";
+  $("statusToggle").setAttribute("aria-expanded", String(!open));
+  $("statusBody").classList.toggle("hidden", open);
+});
+
 $("ping").addEventListener("click", async () => {
   const msg = $("pingMsg"); msg.className = "msg"; msg.textContent = "Testing...";
+  const live = currentConns.filter((c) => c.clients.length);
+  if (!live.length) { msg.className = "msg bad"; msg.textContent = "No Foundry is connected yet."; return; }
+  const lines = []; let bad = false;
+  for (const c of live) {
+    try {
+      const r = await api("/api/ping?connection_id=" + encodeURIComponent(c.id), { method: "POST" });
+      lines.push(c.name + ": " + r.ms + " ms");
+    } catch (e) { bad = true; lines.push(c.name + ": " + e.message); }
+  }
+  msg.className = "msg " + (bad ? "bad" : "ok"); msg.textContent = lines.join(". ");
+});
+
+$("addBtn").addEventListener("click", () => {
+  $("addForm").classList.remove("hidden"); $("addMsg").textContent = "";
+  $("addName").value = ""; $("addName").focus();
+});
+$("addCancel").addEventListener("click", () => $("addForm").classList.add("hidden"));
+$("addForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("addMsg").className = "msg"; $("addMsg").textContent = "";
   try {
-    const r = await api("/api/ping", { method: "POST" });
-    msg.className = "msg ok"; msg.textContent = "Linked. Foundry answered in " + r.ms + " ms.";
-  } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
+    const c = await api("/api/connections", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: $("addName").value }) });
+    openNext = c.id;
+    $("addForm").classList.add("hidden");
+    await refresh();
+  } catch (e) { $("addMsg").className = "msg bad"; $("addMsg").textContent = e.message; }
 });
-
-$("regen").addEventListener("click", async () => {
-  if (!confirm("Make a new key? Foundry will disconnect until you paste it in.")) return;
-  const c = await api("/api/connect/regenerate", { method: "POST" });
-  $("url").value = c.url; $("key").value = c.key;
-  $("copyMsg").className = "msg ok"; $("copyMsg").textContent = "New key made. Paste it into Foundry.";
-});
-
-document.querySelectorAll("[data-copy]").forEach((btn) => btn.addEventListener("click", async () => {
-  const input = $(btn.dataset.copy);
-  const msg = $("copyMsg");
-  try { await navigator.clipboard.writeText(input.value); msg.className = "msg ok"; msg.textContent = "Copied."; }
-  catch (e) { input.select(); msg.className = "msg"; msg.textContent = "Press Ctrl+C to copy the selected text."; }
-}));
 
 start().catch((e) => { $("version").textContent = "Cannot reach the relay. " + e.message; });
 </script>

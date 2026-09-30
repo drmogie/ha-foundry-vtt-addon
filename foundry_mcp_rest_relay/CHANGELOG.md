@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.09.29.14
+
+- Many Foundry servers. Each has a name and its own connect key, with its own card on the web page.
+- One status line for everything. It collapses, and opens to show the relay and each server.
+- A new connection opens its card right away.
+- The old key becomes a connection called Main on first start. Nothing to redo in Foundry.
+- New routes: GET and POST /api/connections, PATCH and DELETE /api/connections/{id}, POST /api/connections/{id}/regenerate. The old /api/connect routes act on the first connection.
+- Client lists now say which connection each Foundry came in on.
+
 ## 2026.09.29.13
 
 - The use item route takes advantage and disadvantage for the attack roll. Needs FGA Relay Connect 2026.09.29.14.
