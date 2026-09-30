@@ -211,3 +211,14 @@ Open risks to check on first real run:
 - New repository means a new add-on ID in Home Assistant (8126043a_foundry_mcp_rest_relay). Data does not carry over: set the login again, new connect key, new API tokens.
 - Image is built by .github/workflows/build-foundry-mcp-rest-relay.yml and pushed to ghcr.io. Packages must be set to Public once.
 - The Foundry module (fga-relay-connect) and the MCP server stay in foundry-mcp.
+
+## 2026-09-29: relay serves many Foundry servers (2026.09.29.14)
+
+- Each Foundry server is a connection with its own name and connect key, kept in /data/connections.json. Added by app/connections.py. Limit 20.
+- First start after the update: the old connect_key.txt key becomes the connection Main, so the module keeps working.
+- The socket checks the offered key against every connection and tags the client with its connection id and name. Client lists show them.
+- Hub.pick and close_all take an optional connection id. A new key or a removal only closes that connection's sockets.
+- Web page: one collapsible status line, one card per connection (name, address, key, test, new key, remove). A new card opens by itself. Cards update in place every 3 seconds so open cards stay open.
+- The old /api/connect routes stay and act on the first connection.
+- API tokens are not tied to a connection. A token limited to a world already picks the client in that world.
+- Tests: 8 new in tests/test_relay.py (72 total).

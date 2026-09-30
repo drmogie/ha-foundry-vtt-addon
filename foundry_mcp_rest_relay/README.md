@@ -14,6 +14,29 @@ It is the REST API. The MCP server sits on top of it.
 - The first key you already had becomes the connection called Main, so Foundry keeps working after the update.
 - API tokens: read only or read and write, limited to one world if you like, with an optional expiry. Each token shows once. The page lists them with last used time and a Revoke button.
 
+## Many Foundry servers
+One relay can serve several Foundry servers at the same time. Each one is a connection.
+- Press "Add connection" on the relay page and type a name, like Main server or Game night. The new card opens by itself.
+- Each card has its own relay address and its own connect key. Copy both into the FGA Relay Connect settings on that Foundry server.
+- Each card can be renamed, given a new key, tested, or removed. A new key or a removal only drops that one server. The others stay connected.
+- The status line at the top shows all of it at once, for example "Relay running. 1 of 2 Foundry servers connected." Press it to open the detail. Press it again to collapse.
+- The relay address is the same on every card. The key is what tells the servers apart.
+- The list is kept in /data/connections.json (owner read and write only). Up to 20 connections. Names must be different.
+- On the first start after updating from an older version, the one old key becomes the connection called Main. Nothing to redo in Foundry.
+
+Web page routes (login needed, not for API tokens):
+- GET /api/connections lists every connection with its name, address, key and connected clients.
+- POST /api/connections with `name` makes one and returns its key.
+- PATCH /api/connections/{id} with `name` renames one.
+- POST /api/connections/{id}/regenerate makes a new key and disconnects that server.
+- DELETE /api/connections/{id} removes one and disconnects that server.
+- POST /api/ping?connection_id={id} tests the link to one server.
+- GET /api/connect and POST /api/connect/regenerate still work. They act on the first connection.
+
+GET /api/status and GET /api/v1/clients now say which connection each Foundry client came in on (`connection` and `connectionId`).
+
+Picking a client for an API call: if only one Foundry client is connected, it is used. If several are, add `client_id`. A token limited to one world picks the client in that world.
+
 ## API tokens
 Make one on the relay page. Send it in the `x-api-key` header, or as `Authorization: Bearer <token>`.
 
@@ -58,7 +81,7 @@ Write routes (write token, allowed worlds only):
 - DELETE /api/v1/document?uuid=...&confirm=true deletes one. It refuses without confirm.
 - POST /api/v1/chat with `content` (and optional `actorId`, `alias`, `whisper`) posts a message.
 - POST /api/v1/rolls with `formula` (and optional `flavor`) rolls and posts to chat.
-- POST /api/v1/items/use with `uuid` (and optional `targets`, `activityId`) uses an item.
+- POST /api/v1/items/use with `uuid` (and optional `targets`, `activityId`, `advantage`, `disadvantage`, `template`, `clearArea`) uses an item. A weapon attack rolls with no dialog. `advantage` and `disadvantage` need FGA Relay Connect 2026.09.29.14. `template` is off by default so a cast never waits for a click on the board. `clearArea` removes the spell area a cast leaves.
 - POST /api/v1/tokens/move with `uuid`, `x`, `y` moves a token.
 - POST /api/v1/scene/switch with `id` or `name`, and optional `activate`.
 - POST /api/v1/combat makes a combat on the scene, or reuses the one there. Optional `tokenUuids`, `rollInitiative`, `start`.
@@ -94,7 +117,7 @@ Test on ha-pi4 first. It runs on port 3011, so it can sit next to the old relay 
 - Install the FGA Relay Connect module from https://github.com/drmogie/foundry-mcp (folder `foundry-module/fga-relay-connect`, copy it into Foundry `Data/modules`).
 - Turn the module on in your world.
 - Open Game Settings, Configure Settings, FGA Relay Connect.
-- Paste the relay address and the connect key from the relay page.
+- Paste the relay address and the connect key from that server's card on the relay page. Each Foundry server uses its own card.
 - Turn on "Connect this browser to the relay".
 - The status light on the relay page turns green.
 
@@ -109,7 +132,7 @@ Use one dedicated GM browser tab. Commands only work while that tab is open.
 - write_worlds: world ids where write routes are allowed. Default `mcp-test`. Use a comma between several, or `*` for all. Reads work in every world.
 - admin_username and admin_password: the web page login.
 
-The connect key and session secret are made on first start and kept in /data.
+The connections list (names and connect keys) and the session secret are made on first start and kept in /data. The connections list is /data/connections.json. Back it up with the add-on if you want to keep your keys.
 
 ## Run without Home Assistant
     pip install -r requirements.txt
@@ -123,5 +146,6 @@ The live tests start a real relay and talk to it over a real socket.
 ## Security notes
 - Wrong passwords lock the address out for five minutes after five tries.
 - The login cookie is signed, HTTP only, and secure behind https.
-- The connect key is checked on every socket.
+- The connect key is checked on every socket. Each key opens only its own connection, and a removed or replaced key stops working at once.
+- Keys are stored in /data/connections.json in plain text, because the page must show them again. Only the API tokens are stored as hashes.
 - Do not open port 3011 to the internet. Put it behind Nginx Proxy Manager.
