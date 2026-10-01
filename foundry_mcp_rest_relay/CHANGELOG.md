@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.30.02
+
+- Show in sidebar. The add-on page now has a Show in sidebar switch, so the relay page opens inside Home Assistant.
+- Opened from the sidebar, the connect address points at the relay port, because Foundry connects straight to it.
+
 ## 2026.09.30.01
 
 - The web page now works under a path such as /relay on a shared address. It uses relative links for its API calls.

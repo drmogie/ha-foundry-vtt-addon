@@ -1,5 +1,5 @@
 name: "Foundry VTT MCP & Rest Relay"
-version: "2026.09.30.01"
+version: "2026.09.30.02"
 slug: foundry_mcp_rest_relay
 image: ghcr.io/drmogie/{arch}-addon-foundry-mcp-rest-relay
 description: "REST API and MCP relay between Foundry VTT and tools like Claude. Easy setup, one login."
@@ -10,6 +10,11 @@ arch:
 init: false
 startup: application
 boot: auto
+ingress: true
+ingress_port: 3011
+panel_icon: mdi:dice-d20
+panel_title: Foundry Relay
+panel_admin: true
 ports:
   3011/tcp: 3011
 ports_description:

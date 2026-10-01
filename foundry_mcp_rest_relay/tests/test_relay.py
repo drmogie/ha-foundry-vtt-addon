@@ -91,6 +91,13 @@ def test_connect_info_keeps_path_prefix_behind_proxy(tmp_path):
     assert r.json()["url"] == "wss://vtt.example.com/relay/ws/module"
 
 
+def test_connect_info_from_the_sidebar_points_at_the_relay_port(tmp_path):
+    client, settings = make(tmp_path)
+    login(client)
+    r = client.get("/api/connect", headers={"x-ingress-path": "/api/hassio_ingress/abc", "host": "ha.example.com:8123"})
+    assert r.json()["url"] == f"ws://ha.example.com:{settings.port}/ws/module"
+
+
 def test_page_uses_relative_api_paths():
     from app.main import STATIC
     html = (STATIC / "index.html").read_text(encoding="utf-8")

@@ -115,6 +115,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         proto = request.headers.get("x-forwarded-proto", request.url.scheme)
         host = request.headers.get("x-forwarded-host") or request.headers.get("host") or "localhost"
         scheme = "wss" if proto == "https" else "ws"
+        if request.headers.get("x-ingress-path"):
+            # Opened from the Home Assistant sidebar. Foundry connects straight to the relay port, not through the sidebar.
+            return f"ws://{host.rsplit(':', 1)[0] if host.count(':') == 1 else host}:{settings.port}/ws/module"
         prefix = request.headers.get("x-forwarded-prefix", "").strip().rstrip("/")
         if prefix and not prefix.startswith("/"):
             prefix = ""

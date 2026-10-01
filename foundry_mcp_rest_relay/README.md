@@ -110,6 +110,7 @@ Tokens are stored as a hash in /data/tokens.db, so nobody can read one back, not
 - Open the Configuration tab. Set a username and a password. Save.
 - Start the add-on.
 - Open http://ha-pi4:3011 and log in.
+- Or turn on Show in sidebar on the add-on page. The relay then opens inside Home Assistant. Foundry still connects to port 3011 directly.
 
 Test on ha-pi4 first. It runs on port 3011, so it can sit next to the old relay on 3010.
 
