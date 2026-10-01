@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.09.30.02
+
+- The test page is now the home page (/). /test still works. The JSON health check moved to /health only, so anything that checked / for the JSON should use /health.
+
 ## 2026.09.30.01
 
 - New test page at /test. Find a character ID from a link to your D&D Beyond campaigns, paste it, get the data, open the proxy link, copy the data, or clear it.

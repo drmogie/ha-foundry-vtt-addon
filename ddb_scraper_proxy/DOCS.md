@@ -65,10 +65,10 @@ under the add-on's own **Network** tab if you need to).
   Beyond URL).
 - `GET /health` -- a quick check that the add-on is up and what it's
   currently configured to scrape from. Returns `{"status": "ok", ...}`.
-- `GET /test` -- a simple test page. It has a link to your D&D Beyond
+- `GET /` (also `/test`) -- a simple test page. It has a link to your D&D Beyond
   campaigns (to find a character ID), a box for the ID, and a data box
   that shows what the proxy sent back. It also has Open link, Copy data
-  and Clear buttons. Open it at `http://<this device's address>:8099/test`.
+  and Clear buttons. Open it at `http://<this device's address>:8099/`.
 
 Point `ddb-live-importer` (or anything else) at
 `http://<this device's address>:8099/character/<id>` to fetch a public

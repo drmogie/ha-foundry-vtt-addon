@@ -119,16 +119,16 @@ class ProxyHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path in ("/", "/health"):
+        if self.path.split("?")[0] == "/health":
             self._send_json(200, {
                 "status": "ok",
                 "service": "ddb-public-proxy",
                 "ddbBaseUrl": BASE_URL,
-                "note": "Only works for D&D Beyond characters set to Public -- see /character/<id>. Try /test for a test page."
+                "note": "Only works for D&D Beyond characters set to Public -- see /character/<id>. Open / for the test page."
             })
             return
 
-        if self.path.split("?")[0] in ("/test", "/test/"):
+        if self.path.split("?")[0] in ("/", "/test", "/test/"):
             # Simple page for trying the proxy by hand. Same origin, so no CORS needed.
             try:
                 with open(TEST_PAGE, "rb") as f:
