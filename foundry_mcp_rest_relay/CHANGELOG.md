@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.30.01
+
+- The web page now works under a path such as /relay on a shared address. It uses relative links for its API calls.
+- The connect address keeps that path when the proxy sends X-Forwarded-Prefix.
+
 ## 2026.09.29.14
 
 - Many Foundry servers. Each has a name and its own connect key, with its own card on the web page.

@@ -115,7 +115,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         proto = request.headers.get("x-forwarded-proto", request.url.scheme)
         host = request.headers.get("x-forwarded-host") or request.headers.get("host") or "localhost"
         scheme = "wss" if proto == "https" else "ws"
-        return f"{scheme}://{host}/ws/module"
+        prefix = request.headers.get("x-forwarded-prefix", "").strip().rstrip("/")
+        if prefix and not prefix.startswith("/"):
+            prefix = ""
+        return f"{scheme}://{host}{prefix}/ws/module"
 
     @app.get("/", include_in_schema=False)
     async def index() -> FileResponse:

@@ -84,6 +84,19 @@ def test_connect_info_builds_wss_behind_proxy(tmp_path):
     assert body["key"].startswith("fga_")
 
 
+def test_connect_info_keeps_path_prefix_behind_proxy(tmp_path):
+    client, _ = make(tmp_path)
+    login(client)
+    r = client.get("/api/connect", headers={"x-forwarded-proto": "https", "host": "vtt.example.com", "x-forwarded-prefix": "/relay"})
+    assert r.json()["url"] == "wss://vtt.example.com/relay/ws/module"
+
+
+def test_page_uses_relative_api_paths():
+    from app.main import STATIC
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    assert 'api("/api/' not in html
+
+
 def test_connect_key_is_stable_and_can_be_replaced(tmp_path):
     client, settings = make(tmp_path)
     login(client)

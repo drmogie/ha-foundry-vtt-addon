@@ -267,7 +267,7 @@ function makeCard(conn) {
   keyCopy.addEventListener("click", copyFrom(key, msg));
   saveName.addEventListener("click", async () => {
     try {
-      await api("/api/connections/" + card.id, { method: "PATCH", headers: { "Content-Type": "application/json" },
+      await api("api/connections/" + card.id, { method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: nameInput.value }) });
       msg.className = "msg ok"; msg.textContent = "Name saved."; refresh();
     } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
@@ -275,20 +275,20 @@ function makeCard(conn) {
   test.addEventListener("click", async () => {
     msg.className = "msg"; msg.textContent = "Testing...";
     try {
-      const r = await api("/api/ping?connection_id=" + encodeURIComponent(card.id), { method: "POST" });
+      const r = await api("api/ping?connection_id=" + encodeURIComponent(card.id), { method: "POST" });
       msg.className = "msg ok"; msg.textContent = "Linked. Foundry answered in " + r.ms + " ms.";
     } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
   });
   regen.addEventListener("click", async () => {
     if (!confirm("Make a new key for " + card.conn.name + "? That Foundry server will disconnect until you paste it in.")) return;
     try {
-      await api("/api/connections/" + card.id + "/regenerate", { method: "POST" });
+      await api("api/connections/" + card.id + "/regenerate", { method: "POST" });
       msg.className = "msg ok"; msg.textContent = "New key made. Paste it into Foundry."; refresh();
     } catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
   });
   remove.addEventListener("click", async () => {
     if (!confirm("Remove " + card.conn.name + "? That Foundry server disconnects and its key stops working.")) return;
-    try { await api("/api/connections/" + card.id, { method: "DELETE" }); refresh(); }
+    try { await api("api/connections/" + card.id, { method: "DELETE" }); refresh(); }
     catch (e) { msg.className = "msg bad"; msg.textContent = e.message; }
   });
   return card;
@@ -368,7 +368,7 @@ function drawClients(s) {
 
 async function refresh() {
   try {
-    const s = await api("/api/status");
+    const s = await api("api/status");
     $("dRelay").className = "dot ok";
     drawStatus(s);
     drawConnections(s.connections);
@@ -399,7 +399,7 @@ function fillWorlds(clients) {
 }
 
 async function loadTokens() {
-  const { tokens } = await api("/api/tokens");
+  const { tokens } = await api("api/tokens");
   const box = $("tokenList");
   box.textContent = "";
   if (!tokens.length) { box.textContent = "None yet."; return; }
@@ -421,7 +421,7 @@ async function loadTokens() {
     const del = document.createElement("button"); del.type = "button"; del.textContent = "Revoke";
     del.addEventListener("click", async () => {
       if (!confirm("Revoke " + t.name + "? Anything using it stops working.")) return;
-      await api("/api/tokens/" + t.id, { method: "DELETE" });
+      await api("api/tokens/" + t.id, { method: "DELETE" });
       loadTokens();
     });
     d.append(dot, wrap, del); box.append(d);
@@ -431,7 +431,7 @@ async function loadTokens() {
 async function loadActivity() {
   const sel = $("aFilter");
   const q = sel.value ? "&token=" + encodeURIComponent(sel.value) : "";
-  const { activity } = await api("/api/activity?limit=30" + q);
+  const { activity } = await api("api/activity?limit=30" + q);
   const box = $("activityList");
   box.textContent = "";
   if (!activity.length) { box.textContent = "Nothing yet."; return; }
@@ -462,7 +462,7 @@ $("tokenForm").addEventListener("submit", async (ev) => {
   const msg = $("tokenMsg"); msg.className = "msg"; msg.textContent = "";
   try {
     const days = $("tExpires").value;
-    const r = await api("/api/tokens", { method: "POST", headers: { "Content-Type": "application/json" },
+    const r = await api("api/tokens", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: $("tName").value, scope: $("tScope").value,
         worldId: $("tokenWorld").value || null, expiresDays: days ? Number(days) : null }) });
     $("tokenValue").value = r.token;
@@ -482,7 +482,7 @@ $("copyToken").addEventListener("click", async () => {
 async function start() {
   clearInterval(timer);
   $("newToken").classList.add("hidden"); $("tokenValue").value = "";
-  const s = await api("/api/session");
+  const s = await api("api/session");
   $("version").textContent = "Version " + s.version;
   if (!s.configured) return show("setup");
   if (!s.loggedIn) return show("login");
@@ -498,14 +498,14 @@ $("loginForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   $("loginMsg").textContent = "";
   try {
-    await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" },
+    await api("api/login", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: $("u").value, password: $("p").value }) });
     $("p").value = "";
     start();
   } catch (e) { $("loginMsg").textContent = e.message; }
 });
 
-$("logout").addEventListener("click", async () => { await api("/api/logout", { method: "POST" }); start(); });
+$("logout").addEventListener("click", async () => { await api("api/logout", { method: "POST" }); start(); });
 
 $("statusToggle").addEventListener("click", () => {
   const open = $("statusToggle").getAttribute("aria-expanded") === "true";
@@ -520,7 +520,7 @@ $("ping").addEventListener("click", async () => {
   const lines = []; let bad = false;
   for (const c of live) {
     try {
-      const r = await api("/api/ping?connection_id=" + encodeURIComponent(c.id), { method: "POST" });
+      const r = await api("api/ping?connection_id=" + encodeURIComponent(c.id), { method: "POST" });
       lines.push(c.name + ": " + r.ms + " ms");
     } catch (e) { bad = true; lines.push(c.name + ": " + e.message); }
   }
@@ -536,7 +536,7 @@ $("addForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   $("addMsg").className = "msg"; $("addMsg").textContent = "";
   try {
-    const c = await api("/api/connections", { method: "POST", headers: { "Content-Type": "application/json" },
+    const c = await api("api/connections", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: $("addName").value }) });
     openNext = c.id;
     $("addForm").classList.add("hidden");
