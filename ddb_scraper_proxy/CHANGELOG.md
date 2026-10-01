@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.30.01
+
+- New test page at /test. Find a character ID from a link to your D&D Beyond campaigns, paste it, get the data, open the proxy link, copy the data, or clear it.
+- The /health answer now mentions the test page.
+
 ## 2026.09.28.01
 
 - Documentation: added guidance on exposing the proxy externally --

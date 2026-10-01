@@ -9,6 +9,7 @@ RUN apt-get update && \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY server.py /server.py
+COPY test.html /test.html
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 

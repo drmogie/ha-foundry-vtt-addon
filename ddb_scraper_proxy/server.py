@@ -37,6 +37,7 @@ OPTIONS_FILE = "/data/options.json"
 DEFAULT_BASE_URL = "https://character-service.dndbeyond.com/character/v5/character/"
 DEFAULT_ALLOWED_ORIGIN = "*"
 LISTEN_PORT = 8099
+TEST_PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.html")
 REQUEST_TIMEOUT_SECONDS = 10
 
 # Character IDs are plain numbers. Restricting to this pattern (rather than
@@ -123,8 +124,24 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 "status": "ok",
                 "service": "ddb-public-proxy",
                 "ddbBaseUrl": BASE_URL,
-                "note": "Only works for D&D Beyond characters set to Public -- see /character/<id>."
+                "note": "Only works for D&D Beyond characters set to Public -- see /character/<id>. Try /test for a test page."
             })
+            return
+
+        if self.path.split("?")[0] in ("/test", "/test/"):
+            # Simple page for trying the proxy by hand. Same origin, so no CORS needed.
+            try:
+                with open(TEST_PAGE, "rb") as f:
+                    page = f.read()
+            except OSError:
+                self._send_json(404, {"error": "Test page not found."})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(page)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(page)
             return
 
         match = re.match(r"^/character/([^/?]+)/?$", self.path)

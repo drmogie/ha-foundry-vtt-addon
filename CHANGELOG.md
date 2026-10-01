@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.09.30.01
+
+- Foundry VTT MCP & Rest Relay 2026.09.30.01 and 2026.09.30.02: the web page works under a path such as /relay, and there is a Show in sidebar switch.
+- DDB Scraper Proxy 2026.09.30.01: new test page at /test.
+
 ## 2026.09.29.08
 
 - Foundry VTT MCP & Rest Relay 2026.09.29.14: many Foundry servers, each with its own name, address and connect key. One collapsible status line.
