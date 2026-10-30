@@ -3,3 +3,4 @@ Thumbs.db
 __pycache__/
 .pytest_cache/
 *.pyc
+PROJECT_NOTES.md

@@ -99,7 +99,7 @@ The relay never touches User or Setting documents.
 
 Example:
 
-    curl -H "x-api-key: fgat_..." https://rest-relay.mogie.io/api/v1/whoami
+    curl -H "x-api-key: fgat_..." https://relay.example.com/api/v1/whoami
 
 A read token can read. A write token can read and write. A world limited token only sees its own world.
 Tokens are stored as a hash in /data/tokens.db, so nobody can read one back, not even from a backup.
